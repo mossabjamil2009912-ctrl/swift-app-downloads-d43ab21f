@@ -1,0 +1,23 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tech.actes.app",
+      "sha256_cert_fingerprints": [
+        "E5:E6:F9:1E:66:6A:B3:9D:8C:16:B9:5B:97:49:3F:B9:FD:C1:BE:EB:58:07:7B:0A:84:B5:F5:B3:94:B1:56:8C",
+        "1E:57:16:FB:8E:22:88:AB:57:48:2B:A0:06:37:03:5C:CB:CC:78:01:8E:4A:21:BE:64:27:44:FB:BA:14:F8:19"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.lovable.friendly_data_feeder.twa",
+      "sha256_cert_fingerprints": [
+        "5E:78:0A:7E:D1:06:9C:22:52:B4:D6:79:49:0D:25:07:FC:29:E5:D6:E6:82:59:4A:50:06:C4:87:35:0C:CE:5B"
+      ]
+    }
+  }
+]
