@@ -32,7 +32,7 @@ export default function ProductVideoPlayer({
   // الفيديو نفسه بلا مسار صوتي: ننتظر جاهزية التعليق الصوتي ثم ننطلق معاً في اللحظة نفسها.
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !playableSrc) return;
     el.muted = true;
     let cancelled = false;
     const startVideo = () => {
@@ -53,7 +53,7 @@ export default function ProductVideoPlayer({
       startVideo();
     });
     return () => { cancelled = true; };
-  }, [video.src, narration]);
+  }, [playableSrc, narration]);
 
   // لا نوقف التعليق عند إخفاء المشغّل: شرح صفحة المنتج يكمل مباشرة بعد تعليق الفيديو بلا انقطاع.
 
@@ -122,7 +122,7 @@ export default function ProductVideoPlayer({
       <div className="relative overflow-hidden rounded-3xl border border-navy/20 bg-navy shadow-xl">
         <video
           ref={ref}
-          src={video.src}
+          src={playableSrc || undefined}
           poster={video.poster}
           playsInline
           preload="auto"
