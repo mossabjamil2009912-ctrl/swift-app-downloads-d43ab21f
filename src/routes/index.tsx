@@ -775,22 +775,14 @@ function ActesApp() {
       ) : gate === "client-login" ? (
         <ClientLogin
           onSuccess={(name, code) => {
-            clientNameRef.current = name;
-            setClientName(name);
-            sessionRef.current = { ...sessionRef.current, customer_name: name, name, clientCode: code } as BotSession;
-            setSession(sessionRef.current);
-            if (typeof window !== "undefined") {
-              window.localStorage.setItem("actes.client", JSON.stringify({ name, code }));
-            }
-            // الرقم هو هوية الحساب: رقم مختلف يعني عميلاً مختلفاً بطلباته الخاصة.
-            switchClient(code);
+            saveClient(name, code);
             reset();
-            // بعد الدخول يعود المستخدم إلى شاشة البداية حيث يظهر زر «ابدأ».
-            setHasClient(true);
+            // الدخول بحساب جديد يعيد المستخدم إلى شاشة الترحيب.
             setGate("boot");
           }}
-          onCancel={() => setGate(hasClient ? "app" : "choose")}
+          onCancel={() => setGate(hasClient ? "app" : "boot")}
         />
+
       ) : gate === "admin-login" ? (
         <AdminLogin onSuccess={enterAdmin} onCancel={() => setGate(hasClient ? "app" : "choose")} />
       ) : isAdmin ? (
