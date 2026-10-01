@@ -8,7 +8,16 @@ import type { SldCable, SldModel } from "@/lib/sld-engine";
 const RHO = 0.0175; // Ω·mm²/m للنحاس عند 20°م
 
 /** أطوال تصميمية نمطية لكل مسار (م) عند غياب مسح موقعي فعلي. */
-const ROUTE_LENGTH: Record<string, number> = { W1: 45, W2: 20, W3: 5, W4: 12, W5: 18, W6: 22, PE: 25, C1: 3, C2: 20 };
+export const DEFAULT_ROUTE_LENGTH: Record<string, number> = { W1: 45, W2: 20, W3: 5, W4: 12, W5: 18, W6: 22, PE: 25, C1: 3, C2: 20 };
+const ROUTE_LENGTH = DEFAULT_ROUTE_LENGTH;
+
+/** أطوال فعلية يدخلها المهندس يدوياً لكل مسار (اختيارية). */
+export type CableLengths = Record<string, number>;
+
+/** الطول الافتراضي لمسار ما قبل أي تعديل يدوي. */
+export function defaultLengthOf(tag: string): number {
+  return DEFAULT_ROUTE_LENGTH[tag] ?? 15;
+}
 
 export type CableCalc = {
   tag: string;
@@ -19,6 +28,8 @@ export type CableCalc = {
   current: number | null;
   volts: number | null;
   length: number;
+  /** الطول معدَّل يدوياً من المهندس بدل الطول التصميمي النمطي. */
+  custom: boolean;
   dropPct: number | null;
   kA: number | null;
 };
@@ -44,7 +55,7 @@ function breakingKa(kind: SldCable["kind"], phase3: boolean, amps: number | null
 }
 
 /** هبوط الجهد ونسبته لكل كابل في المنظومة. */
-export function cableCalcs(m: SldModel): CableCalc[] {
+export function cableCalcs(m: SldModel, lengths?: CableLengths | undefined): CableCalc[] {
   const phase3 = Boolean(m.inverter?.phase3 || m.acBox?.phase3);
   const acVolts = phase3 ? 400 : 230;
 
@@ -66,7 +77,9 @@ export function cableCalcs(m: SldModel): CableCalc[] {
       if (!current && m.inverter) current = Math.round((m.inverter.totalKw * 1000) / (phase3 ? 400 * 1.732 : 230));
     }
 
-    const length = ROUTE_LENGTH[c.tag] ?? 15;
+    const manual = lengths?.[c.tag];
+    const custom = typeof manual === "number" && Number.isFinite(manual) && manual > 0;
+    const length = custom ? (manual as number) : (ROUTE_LENGTH[c.tag] ?? 15);
     let dropPct: number | null = null;
     if (area && current && volts) {
       const factor = c.kind === "ac" && phase3 ? 1.732 : 2;
@@ -83,6 +96,7 @@ export function cableCalcs(m: SldModel): CableCalc[] {
       current: current ?? null,
       volts,
       length,
+      custom,
       dropPct,
       kA: breakingKa(c.kind, phase3, current ?? null),
     };
@@ -92,9 +106,9 @@ export function cableCalcs(m: SldModel): CableCalc[] {
 export type InspectItem = { id: string; title: string; subtitle: string; rows: [string, string][] };
 
 /** بطاقات فحص المكوّنات الهندسية القابلة للنقر على المخطط. */
-export function inspectorItems(m: SldModel): Record<string, InspectItem> {
+export function inspectorItems(m: SldModel, lengths?: CableLengths | undefined): Record<string, InspectItem> {
   const out: Record<string, InspectItem> = {};
-  const calcs = cableCalcs(m);
+  const calcs = cableCalcs(m, lengths);
   const byTag = (t: string) => calcs.find((c) => c.tag === t);
   const phase3 = Boolean(m.inverter?.phase3 || m.acBox?.phase3);
 

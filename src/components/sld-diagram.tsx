@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Download, Expand, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, RotateCcw, Shrink, ShoppingCart, X } from "lucide-react";
+import { ArrowRight, Download, Expand, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, X } from "lucide-react";
 import { buildSld, type SldModel } from "@/lib/sld-engine";
-import { cableCalcs, inspectorItems, type CableCalc } from "@/lib/sld-annotations";
+import { cableCalcs, defaultLengthOf, inspectorItems, type CableCalc, type CableLengths } from "@/lib/sld-annotations";
 import { downloadSldSheet } from "@/lib/sld-pdf";
 import logoAsset from "@/assets/actes-logo-sld.png.asset.json";
 
@@ -758,12 +758,15 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [fitH, setFitH] = useState<number | null>(null);
   const [flow, setFlow] = useState<SldFlow>("none");
   const [saving, setSaving] = useState(false);
+  /** أطوال الكابلات الفعلية التي يدخلها المهندس يدوياً — اختيارية بالكامل. */
+  const [lengths, setLengths] = useState<CableLengths>({});
+  const [lenOpen, setLenOpen] = useState(false);
 
   const [rot, setRot] = useState<{ on: boolean; w: number; h: number }>({ on: false, w: 0, h: 0 });
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model) : []), [model]);
-  const items = useMemo(() => (model ? inspectorItems(model) : {}), [model]);
+  const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model, lengths) : []), [model, lengths]);
+  const items = useMemo(() => (model ? inspectorItems(model, lengths) : {}), [model, lengths]);
 
 
   /**
@@ -1055,7 +1058,30 @@ export default function SldDiagram({ params, number, actions }: Props) {
 
       {model.cables.length > 0 && (
         <>
-          <h4 className="mt-4 text-xs font-black text-skyline">جدول الكابلات والحسابات الكهربائية</h4>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2" dir="rtl">
+            <h4 className="text-xs font-black text-skyline">جدول الكابلات والحسابات الكهربائية</h4>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setLenOpen((v) => !v)}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10.5px] font-black transition ${
+                  lenOpen ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-skyline hover:border-brand hover:text-brand"
+                }`}
+              >
+                <Ruler className="size-3.5" />
+                {lenOpen ? "إنهاء تعديل الأطوال" : "تعديل أطوال الكابلات (اختياري)"}
+              </button>
+              {Object.keys(lengths).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setLengths({})}
+                  className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[10.5px] font-black text-skyline transition hover:border-brand hover:text-brand"
+                >
+                  <RotateCcw className="size-3.5" /> استعادة الأطوال الافتراضية
+                </button>
+              )}
+            </div>
+          </div>
           <div className="mt-2 -mx-1 overflow-x-auto px-1" data-quote-scroll dir="ltr">
             <table className="w-full min-w-[620px] border-collapse text-[10.5px]">
               <thead>
@@ -1074,8 +1100,37 @@ export default function SldDiagram({ params, number, actions }: Props) {
                     <td className="border border-border px-2 py-1 text-center font-black">{c.tag}</td>
                     <td className="border border-border px-2 py-1">{c.route}</td>
                     <td className="border border-border px-2 py-1">{c.spec}</td>
-                    <td className="border border-border px-2 py-1 text-center">{c.length}</td>
-                    <td className={`border border-border px-2 py-1 text-center font-black ${c.dropPct !== null && c.dropPct > 3 ? "text-brand" : ""}`}>
+                    <td className="border border-border px-2 py-1 text-center">
+                      {lenOpen ? (
+                        <input
+                          type="number"
+                          min={1}
+                          max={2000}
+                          step={1}
+                          inputMode="decimal"
+                          aria-label={`الطول الفعلي للمسار ${c.tag}`}
+                          value={lengths[c.tag] ?? ""}
+                          placeholder={String(defaultLengthOf(c.tag))}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setLengths((prev) => {
+                              const next = { ...prev };
+                              const n = Number(v);
+                              if (!v || !Number.isFinite(n) || n <= 0) delete next[c.tag];
+                              else next[c.tag] = Math.min(2000, n);
+                              return next;
+                            });
+                          }}
+                          className="w-16 rounded-md border border-border bg-background px-1.5 py-1 text-center text-[10.5px] font-black outline-none focus:border-brand"
+                        />
+                      ) : (
+                        <span className={c.custom ? "font-black text-skyline" : ""}>
+                          {c.length}
+                          {c.custom ? " *" : ""}
+                        </span>
+                      )}
+                    </td>
+                    <td className={`border border-border px-2 py-1 text-center font-black ${c.dropPct !== null && c.dropPct > 3 ? "text-brand" : "text-energy"}`}>
                       {c.dropPct !== null ? `${c.dropPct}%` : "—"}
                     </td>
                     <td className="border border-border px-2 py-1 text-center">{c.kA ? `${c.kA} kA` : "—"}</td>
@@ -1085,8 +1140,15 @@ export default function SldDiagram({ params, number, actions }: Props) {
             </table>
           </div>
           <p className="mt-1 text-[9.5px] text-muted-foreground" dir="rtl">
-            هبوط الجهد محسوب على أطوال تصميمية نمطية (نحاس 0.0175 Ω·mm²/م) ويُراجع بعد المسح الموقعي؛ الحد المقبول 3%.
+            {Object.keys(lengths).length > 0
+              ? "* أطوال مُدخلة من المسح الموقعي، وهبوط الجهد أُعيد حسابه عليها (نحاس 0.0175 Ω·mm²/م)؛ الحد المقبول 3%."
+              : "هبوط الجهد محسوب على أطوال تصميمية نمطية (نحاس 0.0175 Ω·mm²/م) ويُراجع بعد المسح الموقعي؛ الحد المقبول 3%."}
           </p>
+          {calcs.some((c) => c.dropPct !== null && c.dropPct > 3) && (
+            <p className="mt-1 text-[9.5px] font-black text-brand" dir="rtl">
+              تنبيه: مسار أو أكثر تجاوز هبوط الجهد المسموح 3% — يُنصح بزيادة مقطع الموصل أو تقصير المسار.
+            </p>
+          )}
         </>
       )}
 
@@ -1142,7 +1204,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
       ) : (
         <button
           type="button"
-          onClick={() => downloadSldSheet(model, number)}
+          onClick={() => downloadSldSheet(model, number, calcs)}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-black text-brand-foreground shadow-md transition hover:opacity-90"
         >
           <Download className="size-4" />
