@@ -523,9 +523,156 @@ export default function PvsystStudy({ study, actions }: Props) {
         </p>
       )}
 
+      {/* ==== الدراسة الاقتصادية والبيئية ==== */}
+      {result.annualEnergy && (
+        <>
+          <h4
+            className="mt-4 flex items-center justify-between gap-2 rounded-t-md px-2 py-1 text-[11px] font-black text-white"
+            style={{ background: C.blue }}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Wallet className="size-3.5" />
+              الدراسة الاقتصادية والجدوى البيئية
+            </span>
+            <button
+              type="button"
+              onClick={() => setEcoOpen((v) => !v)}
+              className="rounded-full bg-white/20 px-2 py-[2px] text-[10px] font-bold"
+            >
+              {ecoOpen ? "إخفاء" : "عرض"}
+            </button>
+          </h4>
+
+          {ecoOpen && (
+            <div className="border-x border-b p-2.5" style={{ borderColor: C.grid }}>
+              {/* مدخلات قابلة للتعديل */}
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground">تكلفة المنظومة ($)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={50}
+                    value={capex || ""}
+                    onChange={(e) => setCapexInput(Number(e.target.value) || 0)}
+                    placeholder="أدخل تكلفة المنظومة"
+                    className="mt-0.5 w-full rounded-md border border-black/10 bg-background px-2 py-1 text-[12px] font-bold tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground">سعر الكيلوواط ساعة ($)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={tariff}
+                    onChange={(e) => setTariff(Math.max(0, Number(e.target.value)))}
+                    className="mt-0.5 w-full rounded-md border border-black/10 bg-background px-2 py-1 text-[12px] font-bold tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-[10px] text-muted-foreground">سعر لتر الديزل ($)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.05}
+                    value={dieselPrice}
+                    onChange={(e) => setDieselPrice(Math.max(0, Number(e.target.value)))}
+                    className="mt-0.5 w-full rounded-md border border-black/10 bg-background px-2 py-1 text-[12px] font-bold tabular-nums"
+                  />
+                </label>
+              </div>
+
+              {!capex && (
+                <p className="mt-2 rounded-md px-2 py-1.5 text-[10.5px]" style={{ background: "#fdf3e3", color: "#8a5a10" }}>
+                  أدخل تكلفة المنظومة لعرض فترة الاسترداد وتكلفة إنتاج الكيلوواط ساعة.
+                </p>
+              )}
+
+              {eco && (
+                <>
+                  <div className="mt-2.5 grid grid-cols-2 gap-px border lg:grid-cols-4" style={{ borderColor: C.grid, background: C.grid }}>
+                    {[
+                      { t: "الوفر السنوي", v: `${nf(eco.annualSaving)} $`, s: "في السنة الأولى" },
+                      { t: "الوفر الشهري", v: `${nf(eco.monthlySaving)} $`, s: "متوسط شهري" },
+                      {
+                        t: "فترة الاسترداد",
+                        v: eco.paybackYears ? `${nf(eco.paybackYears, 1)} سنة` : "—",
+                        s: "Payback Period",
+                      },
+                      {
+                        t: `صافي الوفر خلال ${LIFETIME_YEARS} سنة`,
+                        v: capex ? `${nf(eco.lifetimeNet)} $` : "—",
+                        s: "بعد خصم التكلفة والصيانة",
+                      },
+                      {
+                        t: "تكلفة إنتاج الكيلوواط",
+                        v: eco.lcoe ? `${nf(eco.lcoe, 3)} $/kWh` : "—",
+                        s: "LCOE",
+                      },
+                      {
+                        t: "العائد على الاستثمار",
+                        v: eco.roi !== null && capex ? `${nf(eco.roi)} %` : "—",
+                        s: "ROI",
+                      },
+                      {
+                        t: "تكلفة الكيلوواط المركّب",
+                        v: specificCost(capex, s.kwp) ? `${nf(specificCost(capex, s.kwp)!)} $/kWp` : "—",
+                        s: "Specific cost",
+                      },
+                      {
+                        t: "إنتاج العمر التشغيلي",
+                        v: `${nf(eco.lifetimeEnergy)} kWh`,
+                        s: `${LIFETIME_YEARS} سنة`,
+                      },
+                    ].map((card) => (
+                      <div key={card.t} className="bg-card px-2.5 py-2">
+                        <p className="text-[9.5px] text-muted-foreground">{card.t}</p>
+                        <p className="mt-0.5 text-[13px] font-black" style={{ color: C.blue }}>
+                          {card.v}
+                        </p>
+                        <p className="text-[9px] text-muted-foreground" dir="ltr">
+                          {card.s}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black" style={{ color: "#1d6f36" }}>
+                    <Leaf className="size-3.5" />
+                    الأثر البيئي
+                  </p>
+                  <div className="mt-1 grid grid-cols-2 gap-px border lg:grid-cols-4" style={{ borderColor: C.grid, background: C.grid }}>
+                    {[
+                      { t: "خفض الانبعاثات سنوياً", v: `${nf(eco.co2PerYear, 1)} طن CO₂` },
+                      { t: `خفض الانبعاثات خلال ${LIFETIME_YEARS} سنة`, v: `${nf(eco.co2Lifetime, 1)} طن CO₂` },
+                      { t: "الديزل الموفّر سنوياً", v: `${nf(eco.dieselLitersPerYear)} لتر` },
+                      { t: "مكافئ الأشجار المزروعة", v: `${nf(eco.treesEquivalent)} شجرة/سنة` },
+                    ].map((card) => (
+                      <div key={card.t} className="bg-card px-2.5 py-2">
+                        <p className="text-[9.5px] text-muted-foreground">{card.t}</p>
+                        <p className="mt-0.5 text-[13px] font-black" style={{ color: "#1d6f36" }}>
+                          {card.v}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="mt-2 text-[9.5px] leading-relaxed text-muted-foreground">
+                    الفرضيات: عمر تشغيلي {LIFETIME_YEARS} سنة، تدهور أداء 0.5% سنوياً، صيانة 1% من قيمة المنظومة سنوياً،
+                    تصاعد تعرفة الطاقة 2% سنوياً، معدل خصم 6%، استهلاك مولد الديزل 0.33 لتر لكل كيلوواط ساعة، ومعامل انبعاث
+                    0.75 كجم ثاني أكسيد الكربون لكل كيلوواط ساعة. الأرقام تقديرية لأغراض الدراسة.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
       <button
         type="button"
-        onClick={() => downloadPvsystReport(result)}
+        onClick={() => downloadPvsystReport(result, eco)}
         className="mt-4 inline-flex items-center justify-center gap-1.5 self-start rounded-full border border-black/10 bg-white px-4 py-1.5 text-xs font-bold text-foreground shadow-sm transition hover:bg-black/5"
       >
         <Download className="size-3.5" />
