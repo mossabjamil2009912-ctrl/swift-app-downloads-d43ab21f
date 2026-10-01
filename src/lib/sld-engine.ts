@@ -350,6 +350,16 @@ export function buildSld(raw: Record<string, unknown> | null): SldModel | null {
   if (model.dcBox) notes.push("Lockable DC load break isolator installed beside the inverter DC input for safe maintenance; DC board rated IP65 UV resistant, AC board IP54.");
   if (!model.grid) notes.push("Stand-alone system — no utility grid connection.");
   if (model.earth) notes.push("All metallic frames, boards and inverter bodies bonded to the earthing pit.");
+  if (pv && inverter?.mppt) {
+    const inputs = Math.max(1, inverter.mppt);
+    const used = Math.min(inputs, pv.strings);
+    const base = Math.floor(pv.strings / used);
+    const extra = pv.strings % used;
+    const map = Array.from({ length: used }, (_, i) => `MPPT ${i + 1} = ${base + (i < extra ? 1 : 0)} string(s)`).join(", ");
+    notes.push(`String to MPPT allocation: ${map} — balanced across the inverter independent trackers.`);
+  }
+  notes.push("Main Earth Bar (MEB) Cu 25×3 mm collects all PE conductors; array frames, structure, boards, inverter and battery rack bonded to it per IEC 60364-7-712.");
+  notes.push("Surge protection: SPD Type I+II on the DC side at the combiner and on the AC side at the main board, with short earthing leads (< 0.5 m) to the MEB.");
   model.notes = notes;
 
   if (!pv && !inverter) return null;
