@@ -1070,7 +1070,7 @@ export const PRODUCTS: Product[] = [
     id: "hithium-heroee-legend-112s",
     category: "storage",
     brand: "HiTHIUM — HeroEE",
-    name: "نظام بطاريات HiTHIUM HeroEE LEGEND 112S المعياري التجاري والصناعي",
+    name: "نظام تخزين HiTHIUM HeroEE LEGEND 112S المعياري التجاري والصناعي",
     model: "HeroEE LEGEND 112S",
     power: "64.3 – 241.1 kWh",
     description: "برج بطاريات معياري قابل للتكديس من 4 إلى 15 وحدة بسعة 64.3 حتى 241.1 كيلوواط ساعة.",
