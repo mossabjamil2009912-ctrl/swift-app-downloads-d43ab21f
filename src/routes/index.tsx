@@ -847,6 +847,18 @@ function ActesApp() {
         onAdminLogin={() => { setSettingsOpen(false); setGate("admin-login"); }}
         onAdminLogout={() => { setSettingsOpen(false); exitAdmin(); }}
       />
+      {loginModal && (
+        <ClientLoginDialog
+          onSuccess={(name, code) => {
+            saveClient(name, code);
+            setLoginModal(false);
+            setCatalog(null);
+            window.setTimeout(() => runService("quote"), 0);
+          }}
+          onCancel={() => setLoginModal(false)}
+        />
+      )}
+
       </div>
       </div>
       )}
