@@ -1153,8 +1153,29 @@ export default function SldDiagram({ params, number, actions }: Props) {
       <div className="mt-3">{flowBar}</div>
       <div className="mt-2">{canvas}</div>
       <p className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Move className="size-3" /> اسحب المخطط للتحريك، و + و − للتكبير، واضغط أي مكوّن لعرض مواصفاته الفنية، وزر الصورة لحفظ المخطط بدقة عالية.
+        <Move className="size-3" /> اسحب المخطط للتحريك، و + و − للتكبير، واضغط أي مكوّن لعرض مواصفاته، وزر الموجة لتشغيل/إيقاف حركة تدفق الطاقة، وزر الملف لتصدير DXF لأوتوكاد.
       </p>
+
+      {mppt.length > 0 && (
+        <div className="mt-3 rounded-md border border-border bg-muted/40 p-2.5" dir="rtl">
+          <p className="text-[11px] font-black text-skyline">توزيع السلاسل على مداخل الـ MPPT</p>
+          <div className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
+            {mppt.map((grp) => (
+              <div key={grp.index} className="flex items-center justify-between gap-2 rounded-md bg-card px-2.5 py-1.5">
+                <span className="text-[10.5px] font-black text-skyline">{`مدخل MPPT ${grp.index}`}</span>
+                <span className="text-[10px] font-bold text-muted-foreground" dir="ltr">
+                  {`${grp.strings.length} string${grp.strings.length > 1 ? "s" : ""} (S${grp.strings.join(", S")})`}
+                  {grp.imp ? ` — Imp ${grp.imp} A` : ""}
+                  {grp.isc ? ` / fuse ≥ ${grp.isc} A` : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[9.5px] text-muted-foreground">
+            التوزيع متوازن بين المداخل (فارق لا يتجاوز سلسلة واحدة) ويُراجع ميدانياً حسب اتجاه وميل كل صف ألواح.
+          </p>
+        </div>
+      )}
 
 
 
