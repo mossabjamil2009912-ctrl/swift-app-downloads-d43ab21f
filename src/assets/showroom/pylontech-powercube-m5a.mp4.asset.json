@@ -1,5 +1,9 @@
 {
-  "url": "/videos/pylontech-powercube-m5a.mp4",
-  "content_type": "video/mp4",
-  "size": 7590847
+  "version": 1,
+  "asset_id": "39eb689c-7911-4d76-ae46-219b62155c61",
+  "project_id": "e1bc7926-83c3-4bfa-973d-7c7307e1efd7",
+  "url": "/__l5e/assets-v1/39eb689c-7911-4d76-ae46-219b62155c61/pylontech-powercube-m5a.mp4",
+  "original_filename": "pylontech-powercube-m5a.mp4",
+  "size": 7484854,
+  "created_at": "2026-10-01T03:09:49Z"
 }
