@@ -268,8 +268,10 @@ function ActesApp() {
       setGate("app");
       return;
     }
-    // المسجل سابقاً يرى شاشة «ابدأ»؛ الزائر الجديد يذهب مباشرة لاختيار نوع الحساب.
-    setGate(registered ? "boot" : "choose");
+    // شاشة الترحيب هي أول شاشة دائماً؛ تسجيل الدخول يأتي لاحقاً عند طلب عرض سعر.
+    void registered;
+    setGate("boot");
+
     // تهيئة النطق المسبق فقط؛ الترحيب الصوتي يبدأ عند الضغط على «ابدأ» (بإيماءة المستخدم).
     prepareWelcome();
     // تخزين تدريجي لأصوات باقي الشاشات في الخلفية حتى تكتمل كلها.
@@ -646,8 +648,10 @@ function ActesApp() {
 
   const isHome = step === "start" || step === "welcome_services";
 
+  // نافذة تسجيل الدخول المصغّرة: تظهر فقط عند طلب عرض سعر من عميل غير مسجَّل
+  const [loginModal, setLoginModal] = useState(false);
 
-  const triggerService = useCallback((kind: "quote" | "energy" | "support") => {
+  const runService = useCallback((kind: "quote" | "energy" | "support") => {
     const words = kind === "quote" ? ["عرض", "سعر"] : kind === "energy" ? ["حلول", "طاقة"] : ["دعم"];
     const option = view?.options.find((item) => words.every((word) => item.title.includes(word)));
     if (option) { send(option.id); return; }
@@ -661,8 +665,15 @@ function ActesApp() {
     apply(initial);
   }, [send, view, apply]);
 
+  const triggerService = useCallback((kind: "quote" | "energy" | "support") => {
+    // طلب عرض السعر يتطلب حساباً؛ من سجّل مرة واحدة لا يُطلب منه التسجيل مجدداً
+    if (kind === "quote" && !hasClient) { setLoginModal(true); return; }
+    runService(kind);
+  }, [hasClient, runService]);
+
   const handleNav = (action: (typeof NAV_ITEMS)[number]["action"]) => {
     if (action === "home") return reset();
+    if (action === "quote" && !hasClient) { setLoginModal(true); return; }
     if (!isHome) {
       reset();
       window.setTimeout(() => {
@@ -678,6 +689,21 @@ function ActesApp() {
     }
     triggerService(action);
   };
+
+  // تسجيل دخول العميل: يُحفظ محلياً فلا يتكرر الطلب بعد إغلاق التطبيق
+  const saveClient = useCallback((name: string, code: string) => {
+    clientNameRef.current = name;
+    setClientName(name);
+    sessionRef.current = { ...sessionRef.current, customer_name: name, name, clientCode: code } as BotSession;
+    setSession(sessionRef.current);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("actes.client", JSON.stringify({ name, code }));
+    }
+    // الرقم هو هوية الحساب: رقم مختلف يعني عميلاً مختلفاً بطلباته الخاصة.
+    switchClient(code);
+    setHasClient(true);
+  }, []);
+
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   // «تعرف على منتجاتنا»: شاشة معلوماتية مستقلة لا تمر بمحرك عروض الأسعار
@@ -749,22 +775,14 @@ function ActesApp() {
       ) : gate === "client-login" ? (
         <ClientLogin
           onSuccess={(name, code) => {
-            clientNameRef.current = name;
-            setClientName(name);
-            sessionRef.current = { ...sessionRef.current, customer_name: name, name, clientCode: code } as BotSession;
-            setSession(sessionRef.current);
-            if (typeof window !== "undefined") {
-              window.localStorage.setItem("actes.client", JSON.stringify({ name, code }));
-            }
-            // الرقم هو هوية الحساب: رقم مختلف يعني عميلاً مختلفاً بطلباته الخاصة.
-            switchClient(code);
+            saveClient(name, code);
             reset();
-            // بعد الدخول يعود المستخدم إلى شاشة البداية حيث يظهر زر «ابدأ».
-            setHasClient(true);
+            // الدخول بحساب جديد يعيد المستخدم إلى شاشة الترحيب.
             setGate("boot");
           }}
-          onCancel={() => setGate(hasClient ? "app" : "choose")}
+          onCancel={() => setGate(hasClient ? "app" : "boot")}
         />
+
       ) : gate === "admin-login" ? (
         <AdminLogin onSuccess={enterAdmin} onCancel={() => setGate(hasClient ? "app" : "choose")} />
       ) : isAdmin ? (
@@ -829,6 +847,18 @@ function ActesApp() {
         onAdminLogin={() => { setSettingsOpen(false); setGate("admin-login"); }}
         onAdminLogout={() => { setSettingsOpen(false); exitAdmin(); }}
       />
+      {loginModal && (
+        <ClientLoginDialog
+          onSuccess={(name, code) => {
+            saveClient(name, code);
+            setLoginModal(false);
+            setCatalog(null);
+            window.setTimeout(() => runService("quote"), 0);
+          }}
+          onCancel={() => setLoginModal(false)}
+        />
+      )}
+
       </div>
       </div>
       )}
@@ -888,7 +918,7 @@ function StartScreen({ clientName, onStart }: { clientName: string; onStart: () 
           <img src={actesSplashLogo} alt="ACTES — أكتس لأنظمة الطاقة وحلولها" className="h-20 w-auto object-contain lg:h-28" />
           <p className="mt-5 text-[11px] font-black tracking-[0.34em] text-brand lg:text-xs lg:tracking-[0.42em]" dir="ltr">ACTES ENERGY SYSTEMS</p>
           <h1 className="mt-3 text-2xl font-black leading-tight lg:text-4xl">
-            {clientName ? `أهلاً بك، ${clientName}` : "أهلاً بك في منصة أكتس"}
+            {clientName ? `مرحباً بك، ${clientName}` : "مرحباً بك في نظام أكتس"}
           </h1>
           <p className="mt-3 max-w-md text-sm leading-7 opacity-80 lg:text-base">
             صمّم منظومتك واحصل على عرض سعر رسمي ودراسة ومخطط معتمد.
@@ -1016,6 +1046,60 @@ function ClientLogin({ onSuccess, onCancel }: { onSuccess: (name: string, code: 
   );
 }
 
+// نافذة دخول مصغّرة فوق الشاشة (لا تملأ الشاشة) — تظهر عند طلب عرض سعر لأول مرة
+function ClientLoginDialog({ onSuccess, onCancel }: { onSuccess: (name: string, code: string) => void; onCancel: () => void }) {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!name.trim()) return setError("الرجاء إدخال اسم العميل");
+    if (!code.trim()) return setError("الرجاء إدخال رقم العميل");
+    setError("");
+    onSuccess(name.trim(), code.trim());
+  };
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="تسجيل الدخول" dir="rtl" className="fixed inset-0 z-[60] grid place-items-center bg-navy/60 px-5 backdrop-blur-sm">
+      <form onSubmit={submit} className="w-full max-w-[320px] rounded-2xl border border-border bg-card p-5 shadow-2xl">
+        <div className="text-center">
+          <div className="mx-auto grid size-11 place-items-center rounded-full bg-brand text-brand-foreground"><UserCircle className="size-6" /></div>
+          <h2 className="mt-2.5 text-lg font-black">تسجيل الدخول</h2>
+          <p className="mt-1 text-[11px] text-muted-foreground">أدخل بياناتك لمتابعة طلب عرض السعر</p>
+        </div>
+        <label className="mt-4 block text-xs font-bold">اسم العميل</label>
+        <input
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="الاسم الكامل"
+          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-brand"
+        />
+        <label className="mt-3 block text-xs font-bold">رقم العميل</label>
+        <input
+          inputMode="numeric"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          placeholder="مثال: 7xxxxxxxx"
+          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-brand"
+        />
+        {error && <p className="mt-2 text-[11px] font-bold text-destructive">{error}</p>}
+        <button
+          type="submit"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-black text-brand-foreground transition hover:opacity-90"
+        >
+          دخول ومتابعة
+        </button>
+        <button type="button" onClick={onCancel} className="mt-2 w-full text-center text-[11px] font-bold text-muted-foreground transition hover:text-foreground">
+          إلغاء
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 function AdminLogin({ onSuccess, onCancel }: { onSuccess: (password: string) => void; onCancel: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -1115,7 +1199,7 @@ function CorporateWelcome({ onClient, onAdmin }: { onClient: () => void; onAdmin
     <main className="corporate-grid grid h-dvh w-full place-items-center bg-sidebar px-6 text-sidebar-foreground" dir="rtl">
       <div className="w-full max-w-md rounded-xl border border-sidebar-foreground/15 bg-card p-8 text-center text-foreground shadow-2xl">
         <div className="flex justify-center"><BrandMark /></div>
-        <p className="mt-3 text-xs text-muted-foreground">نظام مبيعات ACTES لأنظمة الطاقة</p>
+        <p className="mt-3 text-xs text-muted-foreground">نظام أكتس لأنظمة الطاقة</p>
         <button type="button" onClick={onClient} className="mt-6 h-12 w-full rounded-lg bg-brand text-base font-black text-brand-foreground transition hover:opacity-90">الدخول كعميل</button>
         <button type="button" onClick={onAdmin} className="mt-3 h-12 w-full rounded-lg border border-border text-base font-bold transition hover:bg-muted">دخول الإدارة</button>
       </div>
@@ -1152,7 +1236,7 @@ function TopBar({ isAdmin, clientName = "", onExitAdmin, onSettings, onExit }: {
         </div>
         <div className="min-w-0">
           <p className="truncate text-[12px] font-bold text-muted-foreground">مرحباً بك</p>
-          <p className="truncate text-[13px] font-black text-navy">{isAdmin ? "الإدارة" : clientName || "عميل"}<span className="hidden sm:inline">{isAdmin ? " في نظام مبيعات ACTES" : " في نظام مبيعات ACTES"}</span></p>
+          <p className="truncate text-[13px] font-black text-navy">{isAdmin ? "الإدارة" : clientName || "عميل"}<span className="hidden sm:inline"> في نظام أكتس</span></p>
         </div>
         {isAdmin && (
           <span className="ms-2 hidden shrink-0 items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-black text-brand-foreground sm:inline-flex" dir="ltr">
