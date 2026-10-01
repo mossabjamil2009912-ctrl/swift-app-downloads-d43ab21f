@@ -648,8 +648,10 @@ function ActesApp() {
 
   const isHome = step === "start" || step === "welcome_services";
 
+  // نافذة تسجيل الدخول المصغّرة: تظهر فقط عند طلب عرض سعر من عميل غير مسجَّل
+  const [loginModal, setLoginModal] = useState(false);
 
-  const triggerService = useCallback((kind: "quote" | "energy" | "support") => {
+  const runService = useCallback((kind: "quote" | "energy" | "support") => {
     const words = kind === "quote" ? ["عرض", "سعر"] : kind === "energy" ? ["حلول", "طاقة"] : ["دعم"];
     const option = view?.options.find((item) => words.every((word) => item.title.includes(word)));
     if (option) { send(option.id); return; }
@@ -663,8 +665,15 @@ function ActesApp() {
     apply(initial);
   }, [send, view, apply]);
 
+  const triggerService = useCallback((kind: "quote" | "energy" | "support") => {
+    // طلب عرض السعر يتطلب حساباً؛ من سجّل مرة واحدة لا يُطلب منه التسجيل مجدداً
+    if (kind === "quote" && !hasClient) { setLoginModal(true); return; }
+    runService(kind);
+  }, [hasClient, runService]);
+
   const handleNav = (action: (typeof NAV_ITEMS)[number]["action"]) => {
     if (action === "home") return reset();
+    if (action === "quote" && !hasClient) { setLoginModal(true); return; }
     if (!isHome) {
       reset();
       window.setTimeout(() => {
@@ -680,6 +689,21 @@ function ActesApp() {
     }
     triggerService(action);
   };
+
+  // تسجيل دخول العميل: يُحفظ محلياً فلا يتكرر الطلب بعد إغلاق التطبيق
+  const saveClient = useCallback((name: string, code: string) => {
+    clientNameRef.current = name;
+    setClientName(name);
+    sessionRef.current = { ...sessionRef.current, customer_name: name, name, clientCode: code } as BotSession;
+    setSession(sessionRef.current);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("actes.client", JSON.stringify({ name, code }));
+    }
+    // الرقم هو هوية الحساب: رقم مختلف يعني عميلاً مختلفاً بطلباته الخاصة.
+    switchClient(code);
+    setHasClient(true);
+  }, []);
+
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   // «تعرف على منتجاتنا»: شاشة معلوماتية مستقلة لا تمر بمحرك عروض الأسعار
