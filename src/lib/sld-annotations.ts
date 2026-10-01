@@ -8,7 +8,16 @@ import type { SldCable, SldModel } from "@/lib/sld-engine";
 const RHO = 0.0175; // Ω·mm²/m للنحاس عند 20°م
 
 /** أطوال تصميمية نمطية لكل مسار (م) عند غياب مسح موقعي فعلي. */
-const ROUTE_LENGTH: Record<string, number> = { W1: 45, W2: 20, W3: 5, W4: 12, W5: 18, W6: 22, PE: 25, C1: 3, C2: 20 };
+export const DEFAULT_ROUTE_LENGTH: Record<string, number> = { W1: 45, W2: 20, W3: 5, W4: 12, W5: 18, W6: 22, PE: 25, C1: 3, C2: 20 };
+const ROUTE_LENGTH = DEFAULT_ROUTE_LENGTH;
+
+/** أطوال فعلية يدخلها المهندس يدوياً لكل مسار (اختيارية). */
+export type CableLengths = Record<string, number>;
+
+/** الطول الافتراضي لمسار ما قبل أي تعديل يدوي. */
+export function defaultLengthOf(tag: string): number {
+  return DEFAULT_ROUTE_LENGTH[tag] ?? 15;
+}
 
 export type CableCalc = {
   tag: string;
