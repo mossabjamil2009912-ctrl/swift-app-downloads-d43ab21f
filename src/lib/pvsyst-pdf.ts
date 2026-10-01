@@ -1,4 +1,5 @@
 import type { PvsystStudyResult } from "./pvsyst-engine";
+import { LIFETIME_YEARS, type EconomicsResult } from "./pvsyst-economics";
 import actesLogoPlain from "@/assets/actes-logo-plain.png.asset.json";
 
 /**
@@ -54,8 +55,10 @@ const PV_MARK = `<svg class="pvmark" viewBox="0 0 120 90" xmlns="http://www.w3.o
   </g>
 </svg>`;
 
-export function downloadPvsystReport(study: PvsystStudyResult) {
+export function downloadPvsystReport(study: PvsystStudyResult, eco?: EconomicsResult | null) {
   if (typeof window === "undefined") return;
+  const hasEco = Boolean(eco && eco.annualSaving > 0);
+  const totalPages = hasEco ? 6 : 5;
   const s = study.system;
   const origin = window.location.origin;
   const logo = `${origin}${actesLogoPlain.url}`;
@@ -170,7 +173,7 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
     <div class="plogo"><img src="${logo}" alt="ACTES" /></div>
   </div>
   <div class="pver"><b>${PVSYST_VERSION}</b><br/>VC1, Simulation date:<br/>${dstr} ${tstr}<br/>with V8.1.2</div>
-  <div class="pfoot"><span>${dstr}</span><span>PVsyst Licensed to ACTES</span><span>Page ${n}/5</span></div>`;
+  <div class="pfoot"><span>${dstr}</span><span>PVsyst Licensed to ACTES</span><span>Page ${n}/${totalPages}</span></div>`;
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
 <title>${esc(`PVsyst Simulation report — ${project}`)}</title>
@@ -265,7 +268,7 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
     ${study.city ? `<div>${esc(study.city)} - Yemen</div>` : ""}
   </div>
   <div class="cvlogo"><img src="${logo}" alt="ACTES" /></div>
-  <div class="pfoot"><span>${dstr}</span><span>PVsyst Licensed to ACTES</span><span>Page 1/5</span></div>
+  <div class="pfoot"><span>${dstr}</span><span>PVsyst Licensed to ACTES</span><span>Page 1/${totalPages}</span></div>
 </div>
 
 <!-- الصفحة 2: ملخص المشروع -->
@@ -302,7 +305,7 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
       <div class="col">
         <h3>Orientation</h3>
         <div class="plain" style="font-weight:bold">Fixed plane</div>
-        ${row("Tilt/Azimuth", s.tilt !== null ? `${nf(s.tilt, 1)} / 0 °` : null)}
+        ${row("Tilt/Azimuth", s.tilt !== null ? `${nf(s.tilt, 1)} / ${nf(s.azimuthDeg ?? 0, 0)} °` : null)}
       </div>
       <div class="col">
         <h3>Near Shadings</h3>
@@ -353,6 +356,7 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
       <div><span>General parameters, PV Array Characteristics, System losses</span><i></i><span>3</span></div>
       <div><span>Main results</span><i></i><span>4</span></div>
       <div><span>Loss diagram</span><i></i><span>5</span></div>
+      ${hasEco ? `<div><span>Economic and environmental evaluation</span><i></i><span>6</span></div>` : ""}
     </div>
   </div>
 </div>
@@ -371,7 +375,7 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
       <div class="col">
         <h3>Orientation</h3>
         <div class="plain" style="font-weight:bold">Fixed plane</div>
-        ${row("Tilt/Azimuth", s.tilt !== null ? `${nf(s.tilt, 1)} / 0 °` : null)}
+        ${row("Tilt/Azimuth", s.tilt !== null ? `${nf(s.tilt, 1)} / ${nf(s.azimuthDeg ?? 0, 0)} °` : null)}
       </div>
       <div class="col">
         <h3>Models used</h3>
@@ -530,6 +534,59 @@ export function downloadPvsystReport(study: PvsystStudyResult) {
     </div>
   </div>
 </div>
+
+<!-- الصفحة 6: الدراسة الاقتصادية والبيئية -->
+${hasEco ? `<div class="page">
+  ${pageHead(6)}
+  <div class="box"><h2>Economic evaluation</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>Investment</h3>
+        ${row("System cost (CAPEX)", `${nf(eco!.capex, 0)} USD`)}
+        ${row("Specific cost", s.kwp ? `${nf(eco!.capex / s.kwp, 0)} USD/kWp` : null)}
+        ${row("O&amp;M cost", `1.0 % of CAPEX / year`)}
+        ${row("Lifetime", `${LIFETIME_YEARS} years`)}
+      </div>
+      <div class="col">
+        <h3>Savings</h3>
+        ${row("Energy tariff", `${nf(eco!.tariff, 3)} USD/kWh`)}
+        ${row("Annual saving (year 1)", `${nf(eco!.annualSaving, 0)} USD`)}
+        ${row("Monthly saving", `${nf(eco!.monthlySaving, 0)} USD`)}
+        ${row("Lifetime net saving", `${nf(eco!.lifetimeNet, 0)} USD`)}
+      </div>
+      <div class="col">
+        <h3>Indicators</h3>
+        ${row("Payback period", eco!.paybackYears ? `${nf(eco!.paybackYears, 1)} years` : "—")}
+        ${row("LCOE", eco!.lcoe ? `${nf(eco!.lcoe, 3)} USD/kWh` : "—")}
+        ${row("ROI over lifetime", eco!.roi !== null ? `${nf(eco!.roi, 0)} %` : "—")}
+        ${row("Lifetime production", `${nf(eco!.lifetimeEnergy, 0)} kWh`)}
+      </div>
+    </div>
+  </div>
+
+  <div class="box"><h2>Environmental benefit</h2>
+    <div class="cols">
+      <div class="col">
+        ${row("CO2 avoided per year", `${nf(eco!.co2PerYear, 1)} tCO2`)}
+        ${row("CO2 avoided over lifetime", `${nf(eco!.co2Lifetime, 1)} tCO2`)}
+      </div>
+      <div class="col">
+        ${row("Diesel saved per year", `${nf(eco!.dieselLitersPerYear, 0)} liters`)}
+        ${row("Diesel cost avoided", `${nf(eco!.dieselCostPerYear, 0)} USD/year`)}
+      </div>
+      <div class="col">
+        ${row("Equivalent trees planted", `${nf(eco!.treesEquivalent, 0)} trees/year`)}
+        ${row("Emission factor", `0.75 kgCO2/kWh`)}
+      </div>
+    </div>
+    <div class="plain" style="margin-top:6mm;font-size:8pt;line-height:1.7">
+      Assumptions: ${LIFETIME_YEARS}-year operating life, 0.5 %/year module degradation, 1 %/year O&amp;M cost,
+      2 %/year energy tariff escalation, 6 % discount rate, 0.33 liter of diesel per kWh of generator output and
+      0.75 kgCO2 per kWh displaced. Figures are indicative and prepared by the Engineering Department —
+      ACTES Energy Systems &amp; Solutions.
+    </div>
+  </div>
+</div>` : ""}
 
 <script>window.onload=function(){window.focus();setTimeout(function(){window.print();},350);};</script>
 </body></html>`;
