@@ -758,12 +758,15 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [fitH, setFitH] = useState<number | null>(null);
   const [flow, setFlow] = useState<SldFlow>("none");
   const [saving, setSaving] = useState(false);
+  /** أطوال الكابلات الفعلية التي يدخلها المهندس يدوياً — اختيارية بالكامل. */
+  const [lengths, setLengths] = useState<CableLengths>({});
+  const [lenOpen, setLenOpen] = useState(false);
 
   const [rot, setRot] = useState<{ on: boolean; w: number; h: number }>({ on: false, w: 0, h: 0 });
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model) : []), [model]);
-  const items = useMemo(() => (model ? inspectorItems(model) : {}), [model]);
+  const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model, lengths) : []), [model, lengths]);
+  const items = useMemo(() => (model ? inspectorItems(model, lengths) : {}), [model, lengths]);
 
 
   /**
