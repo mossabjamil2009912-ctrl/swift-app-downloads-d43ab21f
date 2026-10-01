@@ -52,8 +52,36 @@ export function mpptMap(m: SldModel): MpptInput[] {
   }));
 }
 
+/**
+ * خريطة المداخل موزعة على كل إنفرتر على حدة.
+ * السلاسل تُقسّم أولاً على الإنفرترات بالتساوي، ثم سلاسل كل إنفرتر
+ * تُقسّم على مداخل الـ MPPT الخاصة به. ترقيم السلاسل يبقى عاماً (S1..Sn).
+ */
+export function mpptMapByInverter(m: SldModel): MpptInput[][] {
+  const pv = m.pv;
+  const inv = m.inverter;
+  if (!pv) return [];
+  const units = Math.max(1, Math.floor(inv?.qty || 1));
+  const inputs = Math.max(1, inv?.mppt || 1);
+  const perUnit = distributeStrings(pv.strings || 1, units);
+  return perUnit.map((unitStrings) => {
+    const groups = distributeStrings(unitStrings.length, inputs);
+    return groups.map((idxs, i) => {
+      const strings = idxs.map((k) => unitStrings[k - 1] as number);
+      return {
+        index: i + 1,
+        strings,
+        imp: pv.imp ? +(pv.imp * strings.length).toFixed(1) : null,
+        isc: pv.isc ? Math.ceil(pv.isc * 1.25 * strings.length) : null,
+        vmp: pv.strVmp ? Math.round(pv.strVmp) : null,
+      };
+    });
+  });
+}
+
 /** وصف نصي مختصر للتوزيع — يُستخدم في الملاحظات والتصدير. */
 export function mpptSummary(map: MpptInput[]): string {
   if (!map.length) return "";
   return map.map((g) => `MPPT ${g.index} = ${g.strings.length} string${g.strings.length > 1 ? "s" : ""}`).join(" | ");
 }
+
