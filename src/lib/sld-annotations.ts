@@ -77,7 +77,9 @@ export function cableCalcs(m: SldModel, lengths?: CableLengths | undefined): Cab
       if (!current && m.inverter) current = Math.round((m.inverter.totalKw * 1000) / (phase3 ? 400 * 1.732 : 230));
     }
 
-    const length = ROUTE_LENGTH[c.tag] ?? 15;
+    const manual = lengths?.[c.tag];
+    const custom = typeof manual === "number" && Number.isFinite(manual) && manual > 0;
+    const length = custom ? (manual as number) : (ROUTE_LENGTH[c.tag] ?? 15);
     let dropPct: number | null = null;
     if (area && current && volts) {
       const factor = c.kind === "ac" && phase3 ? 1.732 : 2;
