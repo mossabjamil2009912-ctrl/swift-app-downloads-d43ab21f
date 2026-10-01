@@ -96,6 +96,7 @@ export function cableCalcs(m: SldModel, lengths?: CableLengths | undefined): Cab
       current: current ?? null,
       volts,
       length,
+      custom,
       dropPct,
       kA: breakingKa(c.kind, phase3, current ?? null),
     };
