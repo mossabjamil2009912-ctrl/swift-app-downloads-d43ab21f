@@ -28,6 +28,8 @@ export type CableCalc = {
   current: number | null;
   volts: number | null;
   length: number;
+  /** الطول معدَّل يدوياً من المهندس بدل الطول التصميمي النمطي. */
+  custom: boolean;
   dropPct: number | null;
   kA: number | null;
 };
