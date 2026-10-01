@@ -59,6 +59,7 @@ import {
   Youtube,
   Linkedin,
   Globe,
+  BadgeDollarSign,
 } from "lucide-react";
 import residentialImage from "@/assets/actes-residential.webp";
 import commercialImage from "@/assets/actes-commercial.webp";
