@@ -262,11 +262,33 @@ export function buildPvsystStudy(
         : 0;
   const systemFactor = (1 + LOSS_FACTORS.inverterSystem) * (1 + storageLoss);
 
+  // زاويتا الميلان والاتجاه المستخدمتان فعلياً (افتراضي الموقع ما لم يعدّلهما المستخدم)
+  const baseTilt = site ? site.tiltDeg : null;
+  const usedTilt =
+    site && typeof orientation?.tilt === "number" && Number.isFinite(orientation.tilt)
+      ? Math.min(45, Math.max(5, Math.round(orientation.tilt)))
+      : baseTilt;
+  const usedAzimuth =
+    typeof orientation?.azimuth === "number" && Number.isFinite(orientation.azimuth)
+      ? Math.min(90, Math.max(-90, Math.round(orientation.azimuth)))
+      : 0;
+  const orientationChanged = Boolean(site && (usedTilt !== baseTilt || usedAzimuth !== 0));
+
   if (site && kwp) {
     const climate = CLIMATES[site.climate]!;
+    // معامل إعادة حساب الإشعاع عند تغيير زاوية الميلان أو الاتجاه
+    const adj = orientationChanged
+      ? tiltAdjustmentFactors(
+          site.lat,
+          baseTilt!,
+          usedTilt!,
+          usedAzimuth,
+          climate.ghi && climate.dhi ? climate.ghi.map((g, i) => (g > 0 ? climate.dhi![i]! / g : null)) : undefined,
+        )
+      : null;
     for (let m = 0; m < 12; m += 1) {
       const days = DAYS_IN_MONTH[m]!;
-      const irradiation = climate.globInc[m]!;
+      const irradiation = climate.globInc[m]! * (adj ? adj[m]! : 1);
       const daily = irradiation / days;
       const globEff = irradiation * GLOB_EFF_FACTOR;
       // حرارة الخلية الفعّالة مرجّحة بشدة الإشعاع، بنفس منهجية معامل Uc في التقرير
