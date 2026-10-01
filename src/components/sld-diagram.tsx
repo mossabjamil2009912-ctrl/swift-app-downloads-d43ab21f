@@ -452,7 +452,7 @@ export function SldSvg({
           <SpdSymbol x={xDc + 22} y={pvTop + Math.max(pvH + 8, 74) + 12} />
           <IsolatorSymbol x={xDc + wDc + 22} y={dcY - 34} color={C.dc} />
           {/* توزيع السلاسل على مداخل الـ MPPT: كل مدخل بخطه وتياره وفيوزه */}
-          {mppt.map((grp, i) => {
+          {!multiInv && mppt.map((grp, i) => {
             const n = mppt.length;
             const y = n === 1 ? dcY : dcY - 14 + (i * 28) / (n - 1);
             return (
@@ -469,6 +469,7 @@ export function SldSvg({
               </g>
             );
           })}
+
         </>
       )}
       {!dc && pv && inv && <line x1={xPv + wPv} y1={dcY} x2={xInv} y2={dcY} stroke={C.dc} strokeWidth={2} />}
