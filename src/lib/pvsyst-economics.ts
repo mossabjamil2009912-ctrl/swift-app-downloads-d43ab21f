@@ -155,3 +155,107 @@ export function specificCost(capex: number, kwp: number | null): number | null {
   if (!kwp || kwp <= 0 || capex <= 0) return null;
   return Math.round((capex / kwp) * 10) / 10;
 }
+
+/** سطر واحد من جدول التدفق النقدي السنوي. */
+export type CashFlowRow = {
+  year: number;
+  /** إنتاج الطاقة المتوقع في هذه السنة kWh */
+  energy: number;
+  /** تعرفة الطاقة البديلة في هذه السنة $/kWh */
+  tariff: number;
+  /** إجمالي الوفر السنوي $ */
+  saving: number;
+  /** تكلفة التشغيل والصيانة $ */
+  om: number;
+  /** صافي التدفق السنوي $ */
+  net: number;
+  /** الرصيد التراكمي $ */
+  cumulative: number;
+  /** التكلفة التراكمية للبديل التقليدي (ديزل/شبكة) $ */
+  baselineCumulative: number;
+  /** التكلفة التراكمية لمنظومة الطاقة الشمسية (رأس المال + الصيانة) $ */
+  solarCumulative: number;
+};
+
+/** جدول التدفق النقدي التفصيلي خلال العمر التشغيلي. */
+export function cashFlowSchedule(
+  input: EconomicsInput,
+  escalation: number = TARIFF_ESCALATION,
+): CashFlowRow[] {
+  const { annualEnergy, capex, tariff } = input;
+  if (!Number.isFinite(annualEnergy) || annualEnergy <= 0) return [];
+  const om = capex * OM_RATE;
+  const rows: CashFlowRow[] = [];
+  let cumulative = -capex;
+  let baseline = 0;
+  let solar = capex;
+  for (let year = 1; year <= LIFETIME_YEARS; year += 1) {
+    const energy = annualEnergy * Math.pow(1 - DEGRADATION, year - 1);
+    const rate = tariff * Math.pow(1 + escalation, year - 1);
+    const saving = energy * rate;
+    const net = saving - om;
+    cumulative += net;
+    baseline += saving;
+    solar += om;
+    rows.push({
+      year,
+      energy: Math.round(energy),
+      tariff: Math.round(rate * 1000) / 1000,
+      saving: Math.round(saving),
+      om: Math.round(om),
+      net: Math.round(net),
+      cumulative: Math.round(cumulative),
+      baselineCumulative: Math.round(baseline),
+      solarCumulative: Math.round(solar),
+    });
+  }
+  return rows;
+}
+
+export type Scenario = {
+  key: string;
+  label: string;
+  note: string;
+  tariff: number;
+  escalation: number;
+  result: EconomicsResult | null;
+};
+
+/** ثلاثة سيناريوهات لتحليل الحساسية: متحفظ / أساسي / مرتفع. */
+export function scenarioAnalysis(input: EconomicsInput): Scenario[] {
+  const defs = [
+    { key: "low", label: "متحفظ", note: "تعرفة أقل 15% وبدون تصاعد", factor: 0.85, escalation: 0 },
+    { key: "base", label: "أساسي", note: "التعرفة المعتمدة وتصاعد 2%", factor: 1, escalation: TARIFF_ESCALATION },
+    { key: "high", label: "مرتفع", note: "تعرفة أعلى 15% وتصاعد 4%", factor: 1.15, escalation: 0.04 },
+  ];
+  return defs.map((d) => {
+    const tariff = Math.round(input.tariff * d.factor * 1000) / 1000;
+    const rows = cashFlowSchedule({ ...input, tariff }, d.escalation);
+    const base = buildEconomics({ ...input, tariff });
+    const last = rows.length ? rows[rows.length - 1]! : null;
+    let payback: number | null = null;
+    let prev = -input.capex;
+    for (const r of rows) {
+      if (payback === null && prev < 0 && r.cumulative >= 0 && r.net > 0) {
+        payback = Math.round((r.year - 1 + Math.abs(prev) / r.net) * 10) / 10;
+      }
+      prev = r.cumulative;
+    }
+    const result = base
+      ? { ...base, paybackYears: payback, lifetimeNet: last ? last.cumulative : base.lifetimeNet }
+      : null;
+    return { key: d.key, label: d.label, note: d.note, tariff, escalation: d.escalation, result };
+  });
+}
+
+/** مكافئات بيئية ملموسة للعميل. */
+export function environmentalEquivalents(co2Tons: number) {
+  return {
+    /** براميل نفط خام موفّرة (0.43 طن CO2 لكل برميل) */
+    oilBarrels: Math.round(co2Tons / 0.43),
+    /** كيلومترات قيادة سيارة بنزين تم تفادي عوادمها (0.17 كجم/كم) */
+    carKm: Math.round((co2Tons * 1000) / 0.17),
+    /** أشجار حضرية مكافئة */
+    trees: Math.round((co2Tons * 1000) / CO2_KG_PER_TREE),
+  };
+}

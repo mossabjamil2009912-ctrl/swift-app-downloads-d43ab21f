@@ -8,6 +8,7 @@ import { prepareSpeech, prepareWelcome, quoteSpeech, replaySpeech, respeakScreen
 import { startVoiceWarmup } from "@/lib/voice-warmup";
 import { preloadAppImages } from "@/lib/preload-images";
 import PvsystStudy from "@/components/pvsyst-study";
+import EconomicStudy from "@/components/economic-study";
 import SldDiagram from "@/components/sld-diagram";
 
 import { enterFullscreen, isFullscreen, toggleFullscreen } from "@/lib/fullscreen";
@@ -58,6 +59,7 @@ import {
   Youtube,
   Linkedin,
   Globe,
+  BadgeDollarSign,
 } from "lucide-react";
 import residentialImage from "@/assets/actes-residential.webp";
 import commercialImage from "@/assets/actes-commercial.webp";
@@ -1476,15 +1478,21 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
   const [showStudyOnly, setShowStudyOnly] = useState(false);
   const studyFresh = Boolean(view.study?.fresh);
   useEffect(() => { setShowStudyOnly(studyFresh); }, [studyFresh, view.study?.number]);
-  const studyScreen = studyFresh && showStudyOnly && view.study;
+  // شاشة دراسة الجدوى الاقتصادية المستقلة
+  const [showEco, setShowEco] = useState(false);
+  useEffect(() => { setShowEco(false); }, [view.study?.number]);
+  const ecoScreen = showEco && view.study ? view.study : null;
+  const studyScreen = !ecoScreen && studyFresh && showStudyOnly && view.study;
   // شاشة المخطط الكهربائي تُعرض وحدها كاملة عند طلبها
   const [showSldOnly, setShowSldOnly] = useState(true);
   const sldParams = view.sld?.params || null;
   useEffect(() => { setShowSldOnly(true); }, [view.sld?.number, Boolean(sldParams)]);
-  const sldScreen = Boolean(sldParams) && showSldOnly && !studyScreen;
+  const sldScreen = Boolean(sldParams) && showSldOnly && !studyScreen && !ecoScreen;
   const hasOutputs = Boolean(view.quote || view.study || view.sld || view.specs.length);
   // شاشة عرض السعر الرسمي: عنوان ثابت بدل نص المتابعة القادم من المحرك
-  const title = sldScreen
+  const title = ecoScreen
+    ? "دراسة الجدوى الاقتصادية والوفر البيئي"
+    : sldScreen
     ? "المخطط الكهربائي أحادي الخط (SLD)"
     : studyScreen
     ? "دراسة المحاكاة الشمسية PVsyst"
@@ -1500,7 +1508,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
   // مسار الدعم الفني: مؤشر مراحل خاص به بدل مراحل عرض السعر
   const isSupportPath = step.startsWith("sup_");
   // شاشة عرض السعر الرسمي: أربعة أزرار مباشرة بألوان مميزة لكل خدمة
-  const isQuoteActions = !sldScreen && Boolean(view.quote) && (step === "qnext_ask" || step === "res_quote_ask" || step === "com_quote_ask" || step === "agr_quote_ask" || step === "buy_ask" || (studyFresh && !showStudyOnly));
+  const isQuoteActions = !sldScreen && !ecoScreen && Boolean(view.quote) && (step === "qnext_ask" || step === "res_quote_ask" || step === "com_quote_ask" || step === "agr_quote_ask" || step === "buy_ask" || (studyFresh && !showStudyOnly));
   // شاشة المخطط الكهربائي لا تطلب أي إدخال
   const showEntry = step !== "done" && !view.quote && !view.sld && !isProjectSelection && (step in ENTRY_PROMPTS || (view.needsInput && visibleOptions.length === 0));
 
@@ -1521,7 +1529,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
             <span className="mt-2 block h-1 w-10 rounded-full bg-brand" />
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button type="button" onClick={() => { silenceNextScreen(); if (sldScreen) { setShowSldOnly(false); return; } if (studyScreen) { setShowStudyOnly(false); return; } onBack(); }} title="رجوع خطوة" aria-label="رجوع خطوة" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-bold text-navy shadow-sm transition hover:bg-muted hover:border-brand hover:text-brand lg:text-sm">
+            <button type="button" onClick={() => { silenceNextScreen(); if (ecoScreen) { setShowEco(false); return; } if (sldScreen) { setShowSldOnly(false); return; } if (studyScreen) { setShowStudyOnly(false); return; } onBack(); }} title="رجوع خطوة" aria-label="رجوع خطوة" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-bold text-navy shadow-sm transition hover:bg-muted hover:border-brand hover:text-brand lg:text-sm">
               <ArrowRight className="size-4" /> رجوع
             </button>
             {step === "done" && (
@@ -1538,7 +1546,17 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
 
         <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
 
-            {sldScreen ? (
+            {ecoScreen ? (
+              <EconomicStudy
+                study={ecoScreen}
+                actions={{
+                  onBuy: () => onPick("buy_invoice"),
+                  onBackToQuote: () => setShowEco(false),
+                  onStudy: studyFresh ? () => { setShowEco(false); setShowStudyOnly(true); } : undefined,
+                  onSld: () => { setShowEco(false); onPick("sld_yes"); },
+                }}
+              />
+            ) : sldScreen ? (
               <SldDiagram
                 params={sldParams}
                 number={view.sld?.number}
@@ -1593,7 +1611,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
 
             {isQuoteActions ? (
               <div className="mt-6 border-t border-border pt-5">
-                <QuoteActions onPick={onPick} hideEngineering={String((session as Record<string, unknown>)["menu_choice"] ?? "") === "1"} />
+                <QuoteActions onPick={onPick} hideEngineering={String((session as Record<string, unknown>)["menu_choice"] ?? "") === "1"} onEco={view.study ? () => { silenceNextScreen(); setShowEco(true); } : undefined} />
               </div>
             ) : (visibleOptions.length > 0 || showEntry) && (
               <div className="mt-6 space-y-5 border-t border-border pt-5">
@@ -1628,20 +1646,23 @@ const QUOTE_ACTIONS: { id: string; title: string; note: string; icon: ReactNode;
   { id: "aq_buy", title: "متابعة الشراء", note: "إتمام طلب المنظومة", icon: <ShoppingCart />, className: "bg-energy text-energy-foreground", chip: "bg-energy-foreground/20" },
   { id: "sales_contact", title: "التواصل مع المبيعات", note: "استفسار أو عرض رسمي", icon: <Headphones />, className: "border border-border bg-soft text-foreground", chip: "bg-brand/10 text-brand" },
   { id: "aq_study", title: "دراسة PVsyst", note: "دراسة إنتاجية تفصيلية", icon: <LineChart />, className: "bg-skyline text-skyline-foreground", chip: "bg-skyline-foreground/20" },
+  { id: "aq_eco", title: "دراسة الجدوى الاقتصادية", note: "العائد والاسترداد والوفر البيئي", icon: <BadgeDollarSign />, className: "bg-emerald-600 text-white", chip: "bg-white/20" },
   { id: "aq_sld", title: "مخطط SLD", note: "المخطط الكهربائي الأحادي", icon: <Network />, className: "bg-field text-field-foreground", chip: "bg-field-foreground/15" },
 ];
 
-function QuoteActions({ onPick, hideEngineering = false }: { onPick: (value: string) => void; hideEngineering?: boolean }) {
-  const actions = hideEngineering
-    ? QUOTE_ACTIONS.filter((a) => a.id !== "aq_study" && a.id !== "aq_sld")
-    : QUOTE_ACTIONS;
+function QuoteActions({ onPick, hideEngineering = false, onEco }: { onPick: (value: string) => void; hideEngineering?: boolean; onEco?: (() => void) | undefined }) {
+  const actions = QUOTE_ACTIONS.filter((a) => {
+    if (a.id === "aq_eco") return Boolean(onEco) && !hideEngineering;
+    if (hideEngineering) return a.id !== "aq_study" && a.id !== "aq_sld";
+    return true;
+  });
   return (
-    <div className={`grid gap-3 sm:grid-cols-2 ${hideEngineering ? "" : "xl:grid-cols-4"}`}>
+    <div className={`grid gap-3 sm:grid-cols-2 ${hideEngineering ? "" : "xl:grid-cols-3"}`}>
       {actions.map((action) => (
         <button
           key={action.id}
           type="button"
-          onClick={() => onPick(action.id)}
+          onClick={() => { if (action.id === "aq_eco" && onEco) { onEco(); return; } onPick(action.id); }}
           className={`flex items-center gap-3 rounded-xl px-4 py-3 text-right shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg ${action.className}`}
         >
           <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4 ${action.chip}`}>{action.icon}</span>
