@@ -2074,6 +2074,42 @@ function entryPrompt(step: string, session: BotSession = {}): EntryPrompt {
   return ENTRY_PROMPTS[step] ?? { label: "البيانات المطلوبة", hint: "اكتب البيانات المطلوبة في الخانة ثم تابع", placeholder: "اكتب هنا", cta: "متابعة" };
 }
 
+// قيم سريعة للقطاع التجاري تناسب الأنظمة المتوسطة والكبيرة، وتتبدّل بحسب طريقة الحساب
+const COM_VALUE_PRESETS: Record<string, { label: string; value: string }[]> = {
+  // الاستهلاك الشهري بالكيلووات ساعة
+  "2": [
+    { label: "1500 كيلووات", value: "1500" },
+    { label: "3000 كيلووات", value: "3000" },
+    { label: "6000 كيلووات", value: "6000" },
+    { label: "12 ألف كيلووات", value: "12000" },
+    { label: "25 ألف كيلووات", value: "25000" },
+  ],
+  // استهلاك الديزل الشهري باللتر
+  "3": [
+    { label: "500 لتر", value: "500" },
+    { label: "1000 لتر", value: "1000" },
+    { label: "2000 لتر", value: "2000" },
+    { label: "4000 لتر", value: "4000" },
+    { label: "8000 لتر", value: "8000" },
+  ],
+  // فاتورة الكهرباء الشهرية بالريال اليمني
+  "1": [
+    { label: "150 ألف", value: "150000" },
+    { label: "300 ألف", value: "300000" },
+    { label: "600 ألف", value: "600000" },
+    { label: "مليون", value: "1000000" },
+    { label: "2 مليون", value: "2000000" },
+  ],
+};
+
+function entryPresets(step: string, session: BotSession = {}): { label: string; value: string }[] | undefined {
+  if (step === "com_value") {
+    const method = String(session["activity_type"] || "").replace("com_", "");
+    return COM_VALUE_PRESETS[method] ?? COM_VALUE_PRESETS["1"];
+  }
+  return ENTRY_PRESETS[step];
+}
+
 function DataEntry({ value, onChange, onSubmit, prompt, presets, onQuick }: { value: string; onChange: (value: string) => void; onSubmit: () => void; prompt: EntryPrompt; presets?: { label: string; value: string }[] | undefined; onQuick?: ((value: string) => void) | undefined }) {
   return (
     <form onSubmit={(event) => { event.preventDefault(); onSubmit(); }} className="rounded-lg border border-border bg-muted/35 p-5">
