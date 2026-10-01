@@ -251,7 +251,7 @@ export type SldFlow = "none" | "day" | "night" | "outage";
 
 /** يرسم المخطط الأحادي الكامل داخل عنصر SVG واحد. */
 export function SldSvg({
-  m, fit = false, theme = "paper", pick, active, calcs, flow = "none",
+  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true,
 }: {
   m: SldModel;
   fit?: boolean;
@@ -260,6 +260,8 @@ export function SldSvg({
   active?: string | null | undefined;
   calcs?: CableCalc[] | undefined;
   flow?: SldFlow;
+  /** تشغيل محاكاة تدفق الطاقة المتحركة على المسارات العاملة. */
+  anim?: boolean;
 }) {
   const W = 1240;
   const drawnStrings = Math.min(m.pv?.strings || 1, 4);
@@ -269,8 +271,9 @@ export function SldSvg({
   const busY = pvTop + pvH / 2;
   const batY = busY + 150;
   const bottom = Math.max(busY + 120, batY + 70);
-  const earthY = bottom + 40;
-  const H = earthY + 46;
+  const earthY = bottom + 64;
+  const H = earthY + 64;
+  const mppt = mpptMap(m);
 
   const xPv = 24;
   const wPv = 180;
