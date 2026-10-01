@@ -47,6 +47,8 @@ import cubeM1cVideo from "@/assets/showroom/pylontech-powercube-m1c.mp4.asset.js
 import cubeM1cPoster from "@/assets/showroom/pylontech-powercube-m1c.jpg";
 import optimusA300Video from "@/assets/showroom/pylontech-optimus-a300-hy.mp4.asset.json";
 import optimusA300Poster from "@/assets/showroom/pylontech-optimus-a300-hy.jpg";
+import legend112cVideo from "@/assets/showroom/hithium-legend-112c.mp4.asset.json";
+import legend112cPoster from "@/assets/showroom/hithium-legend-112c.jpg";
 
 /** بطاقة مواصفة تظهر على الفيديو من الثانية `at` حتى `until`. */
 export type VideoCue = { at: number; until: number; label: string; value: string };
@@ -256,6 +258,16 @@ export const PRODUCT_VIDEOS: Record<string, ProductVideo> = {
       { at: 2.4, until: 4.0, label: "الإنفرتر الهجين المدمج", value: "50 kW" },
       { at: 4.0, until: 5.2, label: "عمر الدورات", value: "أكثر من 7000 دورة" },
       { at: 5.2, until: 7.0, label: "الأبعاد الحقيقية", value: "1500 × 1300 × 2200 mm — 3.5 طن" },
+    ],
+  },
+  "hithium-heroee-legend-112c": {
+    src: legend112cVideo.url,
+    poster: legend112cPoster,
+    cues: [
+      { at: 0.4, until: 2.2, label: "الطاقة الاسمية", value: "112.5 kWh" },
+      { at: 2.2, until: 3.8, label: "الجهد الاسمي", value: "358.4 V" },
+      { at: 3.8, until: 5.0, label: "عمر الدورات", value: "11000 دورة" },
+      { at: 5.0, until: 6.5, label: "الأبعاد الحقيقية", value: "900 × 1000 × 2280 mm — 1400 kg" },
     ],
   },
   "pylontech-powercube-m5a": {
