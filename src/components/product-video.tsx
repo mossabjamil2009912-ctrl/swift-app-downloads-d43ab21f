@@ -3,6 +3,7 @@ import { Loader2, Pause, Play, RotateCcw, SkipForward, Volume2, VolumeX } from "
 import type { ProductVideo } from "@/lib/product-video";
 import { videoNarration } from "@/lib/product-video";
 import { isVoiceOn, speak, stopSpeaking, unlockVoice } from "@/lib/voice-guide";
+import { useResolvedVideoSrc } from "@/lib/video-source";
 
 /** مشغّل فيديو تعريف المنتج — فيديو حقيقي داخل معرض ACTES مع تعليق صوتي عربي وبطاقات مواصفات متزامنة. */
 export default function ProductVideoPlayer({
