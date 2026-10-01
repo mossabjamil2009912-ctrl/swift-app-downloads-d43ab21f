@@ -224,10 +224,14 @@ const MODE_LABEL: Record<string, string> = {
   hyb: "هجين (Hybrid)",
 };
 
+/** خيارات اختيارية لتعديل هندسة التركيب (زاوية الميلان والاتجاه). */
+export type OrientationOverride = { tilt?: number | null; azimuth?: number | null };
+
 /** يبني نتائج الدراسة من معاملات الدراسة (study_params) القادمة من البوت. */
 export function buildPvsystStudy(
   sp: Record<string, unknown> | null,
   fallback: { city?: string; customer?: string; reference?: string; monthlyConsumption?: unknown },
+  orientation?: OrientationOverride,
 ): PvsystStudyResult | null {
   if (!sp) return null;
   const sys = (sp['system'] || {}) as Record<string, unknown>;
