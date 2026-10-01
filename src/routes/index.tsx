@@ -1703,7 +1703,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
                   ? (() => { const info = shiftEntryInfo(session); return <ShiftEntry key={`shift-${info.offset}-${info.count}`} count={info.count} offset={info.offset} onSubmit={onPick} />; })()
                   : step === "pv_loads"
                     ? <HourlyLoadEntry onSubmit={onPick} />
-                    : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={ENTRY_PRESETS[step]} onQuick={onPick} />)}
+                    : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={entryPresets(step, session)} onQuick={onPick} />)}
                 {visibleOptions.length > 0 && <OptionGrid options={visibleOptions} selected={selected} projectCards={isProjectSelection} energyCards={isEnergyMenu} itemCards={isItemCards} onSelect={(value) => { onPick(value); }} />}
               </div>
             )}
