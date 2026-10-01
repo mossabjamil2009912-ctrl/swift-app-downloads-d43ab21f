@@ -309,10 +309,10 @@ export const PRODUCT_VIDEOS: Record<string, ProductVideo> = {
     src: cubeM1cVideo.url,
     poster: cubeM1cPoster,
     cues: [
-      { at: 0.5, until: 3.2, label: "سعة الوحدة", value: "4.74 kWh" },
-      { at: 3.2, until: 5.4, label: "جهد تشغيل النظام", value: "0~1000 Vdc" },
-      { at: 5.4, until: 7.4, label: "عدد الوحدات", value: "1~23" },
-      { at: 7.4, until: 10, label: "دورة الحياة", value: "7000" },
+      { at: 0.4, until: 2.2, label: "سعة الوحدة", value: "4.74 kWh" },
+      { at: 2.2, until: 3.6, label: "جهد تشغيل النظام", value: "0~1000 Vdc" },
+      { at: 3.6, until: 4.8, label: "عدد الوحدات", value: "1~23 وحدة" },
+      { at: 4.8, until: 6.0, label: "الأبعاد الحقيقية", value: "815 × 659 × 2130 mm" },
     ],
   },
 };

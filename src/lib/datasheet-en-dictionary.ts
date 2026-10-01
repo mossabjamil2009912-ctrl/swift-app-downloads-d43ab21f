@@ -247,6 +247,8 @@ export const SPEC_LABELS_EN: Record<string, string> = {
   "سعة الخلايا": "Cell capacity",
   "سعة الخلية": "Cell capacity",
   "سعة النظام": "System capacity",
+  "جهد الشحن الأعلى": "System charge upper-voltage",
+  "جهد التفريغ الأدنى": "System discharge lower-voltage",
   "شحن البطارية من PV": "Battery charging from PV",
   "شحن البطارية من PV/AC": "Battery charging from PV / AC",
   "شحن/تفريغ البطارية إلى AC": "Battery charge / discharge to AC",
