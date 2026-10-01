@@ -481,7 +481,7 @@ export default function PvsystStudy({ study, actions }: Props) {
             <div className="border-t px-2.5 py-3" style={{ borderColor: C.grid }}>
               {/* مجسم زاوية الميلان التفاعلي */}
               <div className="mb-3 overflow-hidden rounded-md border" style={{ borderColor: C.grid, background: "#f7f9fc" }}>
-                <svg viewBox="0 0 300 120" className="h-28 w-full" dir="ltr">
+                <svg viewBox="0 0 300 120" className="h-28 w-full" style={{ direction: "ltr" }}>
                   <defs>
                     <linearGradient id="pvglass" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#2b4fb5" />
