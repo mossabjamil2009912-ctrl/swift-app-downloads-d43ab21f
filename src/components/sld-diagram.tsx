@@ -1204,7 +1204,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
       ) : (
         <button
           type="button"
-          onClick={() => downloadSldSheet(model, number)}
+          onClick={() => downloadSldSheet(model, number, calcs)}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-black text-brand-foreground shadow-md transition hover:opacity-90"
         >
           <Download className="size-4" />
