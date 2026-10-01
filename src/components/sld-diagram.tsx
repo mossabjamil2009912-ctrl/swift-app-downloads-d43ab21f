@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Download, Expand, FileDown, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, Waves, X } from "lucide-react";
+import { ArrowRight, Boxes, Download, Expand, FileDown, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, Waves, X } from "lucide-react";
 import { buildSld, type SldModel } from "@/lib/sld-engine";
 import { cableCalcs, defaultLengthOf, inspectorItems, type CableCalc, type CableLengths } from "@/lib/sld-annotations";
 import { downloadSldSheet } from "@/lib/sld-pdf";
 import { downloadSldDxf } from "@/lib/sld-dxf";
 import { mpptMap } from "@/lib/sld-mppt";
+import { EquipArt, PvRealSymbol, type EquipKind } from "@/components/sld-equipment";
 import logoAsset from "@/assets/actes-logo-sld.png.asset.json";
 
 
@@ -94,8 +95,9 @@ function PhaseMark({ x, y, phase3 }: { x: number; y: number; phase3: boolean }) 
 
 
 
-/** رمز لوح شمسي قياسي. */
-function PvSymbol({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+/** رمز لوح شمسي قياسي، أو لوح واقعي بخلايا نصف مقطوعة في وضع العرض الواقعي. */
+function PvSymbol({ x, y, w, h, real }: { x: number; y: number; w: number; h: number; real?: boolean | undefined }) {
+  if (real) return <PvRealSymbol x={x} y={y} w={w} h={h} />;
   return (
     <g>
       <rect x={x} y={y} width={w} height={h} fill={C.fill} stroke={C.ink} strokeWidth={1.4} />
@@ -179,23 +181,32 @@ function MeterSymbol({ x, y }: { x: number; y: number }) {
 
 /** صندوق مكوّن هندسي بعنوان وأسطر مواصفات، قابل للنقر لإظهار بطاقة فحصه. */
 function Block({
-  x, y, w, h, title, lines, accent, id, pick, active,
+  x, y, w, h, title, lines, accent, id, pick, active, art, real,
 }: {
   x: number; y: number; w: number; h: number; title: string; lines: string[]; accent: string;
   id?: string | undefined; pick?: ((id: string) => void) | undefined; active?: boolean | undefined;
+  /** نوع المجسم الواقعي المقابل لهذا المكوّن. */
+  art?: EquipKind | undefined;
+  /** تشغيل العرض الواقعي بدل الصندوق القياسي. */
+  real?: boolean | undefined;
 }) {
   const clickable = Boolean(id && pick);
+  const showArt = Boolean(real && art);
   return (
     <g
       style={clickable ? { cursor: "pointer" } : undefined}
       onClick={clickable ? () => pick!(id!) : undefined}
     >
       <rect x={x} y={y} width={w} height={h} fill={C.fill} stroke={active ? accent : C.frame} strokeWidth={active ? 2.8 : 1.6} />
+      {showArt && <EquipArt kind={art!} x={x} y={y + 16} w={w} h={h - 16} accent={accent} />}
       <rect x={x} y={y} width={w} height={16} fill={C.band} stroke={C.frame} strokeWidth={1.2} />
       <rect x={x} y={y} width={3} height={h} fill={accent} />
       <text x={x + w / 2} y={y + 12} textAnchor="middle" fontFamily={F} fontSize={9.5} fontWeight={700} fill={C.ink}>
         {title}
       </text>
+      {showArt && lines.length > 0 && (
+        <rect x={x + 3} y={y + 19} width={w - 6} height={lines.length * 12 + 4} fill={C.fill} opacity={0.82} />
+      )}
       {lines.map((l, i) => (
         <text key={i} x={x + 6} y={y + 30 + i * 12} fontFamily={F} fontSize={8.6} fill={C.ink}>
           {l}
@@ -209,6 +220,7 @@ function Block({
     </g>
   );
 }
+
 
 
 
@@ -251,7 +263,7 @@ export type SldFlow = "none" | "day" | "night" | "outage";
 
 /** يرسم المخطط الأحادي الكامل داخل عنصر SVG واحد. */
 export function SldSvg({
-  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true,
+  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true, real = false,
 }: {
   m: SldModel;
   fit?: boolean;
@@ -262,6 +274,8 @@ export function SldSvg({
   flow?: SldFlow;
   /** تشغيل محاكاة تدفق الطاقة المتحركة على المسارات العاملة. */
   anim?: boolean;
+  /** عرض المعدات بمجسماتها الواقعية بدل الرموز القياسية. */
+  real?: boolean;
 }) {
   const W = 1240;
   const drawnStrings = Math.min(m.pv?.strings || 1, 4);
@@ -274,6 +288,9 @@ export function SldSvg({
   const earthY = bottom + 64;
   const H = earthY + 64;
   const mppt = mpptMap(m);
+  /** البطاريات عالية الجهد تُرسم خزانة برجية، والمنخفضة وحدة جدارية. */
+  const batArt: EquipKind = (m.battery?.vdc || 0) >= 96 ? "battery-rack" : "battery-wall";
+
 
   const xPv = 24;
   const wPv = 180;
@@ -377,7 +394,7 @@ export function SldSvg({
             return (
               <g key={i}>
                 {[0, 1, 2].map((k) => (
-                  <PvSymbol key={k} x={xPv + k * 30} y={y} w={26} h={22} />
+                  <PvSymbol key={k} x={xPv + k * 30} y={y} w={26} h={22} real={real} />
                 ))}
                 <text x={xPv + 92} y={y + 6} fontFamily={F} fontSize={8.4} fill={C.ink}>
                   {`String ${i + 1} — ${pv.perString} × ${pv.wp} Wp`}
@@ -415,6 +432,7 @@ export function SldSvg({
             id="dc"
             pick={pick}
             active={active === "dc"}
+            art="board-dc" real={real}
           />
           {Array.from({ length: drawnStrings }).map((_, i) => (
             <FuseSymbol key={i} x={xDc + wDc - 20} y={pvTop + i * rowH + 19} />
@@ -477,6 +495,7 @@ export function SldSvg({
             id="inv"
             pick={pick}
             active={active === "inv"}
+            art="inverter" real={real}
           />
 
           <text x={xInv + wInv / 2} y={invY + invH + 12} textAnchor="middle" fontFamily={F} fontSize={8.2} fill={C.soft}>
@@ -519,6 +538,7 @@ export function SldSvg({
               id="bat"
               pick={pick}
               active={active === "bat"}
+              art={batArt} real={real}
             />
             <BatterySymbol x={bankX + bankW + 14} y={batY} />
             <text x={bankX} y={batY + 50} fontFamily={F} fontSize={8} fill={C.soft}>{bat.model}</text>
@@ -527,7 +547,7 @@ export function SldSvg({
             <Polarity x={bankX + bankW + 24} y={batY + 26} sign="−" />
             {m.batBox ? (
               <>
-                <Block x={boxX} y={batY - 28} w={108} h={62} title="BATTERY BOX" lines={[m.batBox.rating, "Icu 10 kA"]} accent={C.dc} id="bat" pick={pick} active={active === "bat"} />
+                <Block x={boxX} y={batY - 28} w={108} h={62} title="BATTERY BOX" lines={[m.batBox.rating, "Icu 10 kA"]} accent={C.dc} id="bat" pick={pick} active={active === "bat"} art="board-dc" real={real} />
                 <BreakerSymbol x={boxX + 78} y={batY + 6} />
                 <line x1={boxX + 108} y1={batY} x2={riser} y2={batY} stroke={C.dc} strokeWidth={2} />
               </>
@@ -572,6 +592,7 @@ export function SldSvg({
             id="ac"
             pick={pick}
             active={active === "ac"}
+            art="board-ac" real={real}
           />
 
           <BreakerSymbol x={xAc + wAc - 24} y={dcY} />
@@ -596,6 +617,7 @@ export function SldSvg({
             id="ats"
             pick={pick}
             active={active === "ats"}
+            art="ats" real={real}
           />
         </>
       )}
@@ -621,6 +643,7 @@ export function SldSvg({
                   id="grid"
                   pick={pick}
                   active={active === "grid"}
+                  art="grid" real={real}
                 />
                 <line x1={from} y1={dcY} x2={xOut - 26} y2={dcY} stroke={C.ac} strokeWidth={2} />
                 <line x1={xOut - 26} y1={dcY} x2={xOut - 26} y2={dcY - 50} stroke={C.ac} strokeWidth={2} />
@@ -657,6 +680,7 @@ export function SldSvg({
               id={backup ? "backup" : "loads"}
               pick={pick}
               active={active === (backup ? "backup" : "loads")}
+              art="loads" real={real}
             />
             {backup ? (
               <g opacity={opEps}>
@@ -860,6 +884,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [full, setFull] = useState(false);
   /** محاكاة تدفق الطاقة المتحركة — قابلة للإيقاف. */
   const [anim, setAnim] = useState(true);
+  const [real, setReal] = useState(false);
   const [theme, setTheme] = useState<SldTheme>("paper");
   const [picked, setPicked] = useState<string | null>(null);
   const [fitH, setFitH] = useState<number | null>(null);
@@ -1036,6 +1061,17 @@ export default function SldDiagram({ params, number, actions }: Props) {
       </button>
       <button
         type="button"
+        onClick={() => setReal((v) => !v)}
+        aria-label={real ? "عرض الرموز الهندسية القياسية" : "عرض مجسمات المعدات الواقعية"}
+        title={real ? "الوضع القياسي IEC" : "العرض الواقعي للمعدات"}
+        className={`grid size-9 place-items-center rounded-full border transition ${
+          real ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-skyline hover:border-brand hover:text-brand"
+        }`}
+      >
+        <Boxes className="size-4" />
+      </button>
+      <button
+        type="button"
         onClick={() => setAnim((v) => !v)}
         aria-label={anim ? "إيقاف محاكاة تدفق الطاقة" : "تشغيل محاكاة تدفق الطاقة"}
         title={anim ? "إيقاف الحركة" : "تشغيل الحركة"}
@@ -1112,7 +1148,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
             : { transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "50% 50%" }
         }
       >
-        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} anim={anim} />
+        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} anim={anim} real={real} />
       </div>
       {inspector}
     </div>
