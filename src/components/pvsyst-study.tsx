@@ -1,6 +1,14 @@
-import { useMemo } from "react";
-import { ArrowLeft, Download, Network, ShoppingCart } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft, Compass, Download, Leaf, Network, RotateCcw, ShoppingCart, Wallet } from "lucide-react";
 import { buildPvsystStudy } from "@/lib/pvsyst-engine";
+import { AZIMUTH_OPTIONS } from "@/lib/pvsyst-geometry";
+import {
+  buildEconomics,
+  capexFromQuoteItems,
+  DEFAULT_TARIFF_USD,
+  LIFETIME_YEARS,
+  specificCost,
+} from "@/lib/pvsyst-economics";
 import { downloadPvsystReport } from "@/lib/pvsyst-pdf";
 import type { View } from "@/lib/present";
 import actesLogoPlain from "@/assets/actes-logo-plain.png.asset.json";
