@@ -283,11 +283,30 @@ export function SldSvg({
   const rowH = 44;
   const pvH = drawnStrings * rowH;
   const busY = pvTop + pvH / 2;
-  const batY = busY + 150;
-  const bottom = Math.max(busY + 120, batY + 70);
+
+  const pv = m.pv;
+  const dc = m.dcBox;
+  const inv = m.inverter;
+  const bat = m.battery;
+  const ac = m.acBox;
+
+  // تعدد الإنفرترات: يُرسم كل إنفرتر كوحدة مستقلة بمداخل MPPT خاصة به.
+  const invCount = Math.max(1, Math.floor(inv?.qty || 1));
+  const drawnInv = Math.min(invCount, 4);
+  const multiInv = drawnInv > 1;
+  const invUnitH = multiInv ? 84 : 92;
+  const invGap = 22;
+  const stackH = drawnInv * invUnitH + (drawnInv - 1) * invGap;
+
+  const invY = busY - stackH / 2;
+  const invH = stackH;
+
+  const batY = Math.max(busY + 150, invY + stackH + 86);
+  const bottom = Math.max(busY + 120, batY + 70, invY + stackH + 40);
   const earthY = bottom + 64;
   const H = earthY + 64;
   const mppt = mpptMap(m);
+  const mpptByInv = mpptMapByInverter(m);
   /** البطاريات عالية الجهد تُرسم خزانة برجية، والمنخفضة وحدة جدارية. */
   const batArt: EquipKind = (m.battery?.vdc || 0) >= 96 ? "battery-rack" : "battery-wall";
 
@@ -305,15 +324,8 @@ export function SldSvg({
   const xOut = 1016;
   const wOut = 200;
 
-  const invY = busY - 46;
-  const invH = 92;
-
-  const pv = m.pv;
-  const dc = m.dcBox;
-  const inv = m.inverter;
-  const bat = m.battery;
-  const ac = m.acBox;
   const phase3 = Boolean(inv?.phase3 || ac?.phase3);
+
   const drop = (tag: string) => {
     const c = calcs?.find((x) => x.tag === tag);
     return c && c.dropPct !== null ? ` — ${c.dropPct}%` : "";
