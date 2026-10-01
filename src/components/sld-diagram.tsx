@@ -394,7 +394,7 @@ export function SldSvg({
             return (
               <g key={i}>
                 {[0, 1, 2].map((k) => (
-                  <PvSymbol key={k} x={xPv + k * 30} y={y} w={26} h={22} />
+                  <PvSymbol key={k} x={xPv + k * 30} y={y} w={26} h={22} real={real} />
                 ))}
                 <text x={xPv + 92} y={y + 6} fontFamily={F} fontSize={8.4} fill={C.ink}>
                   {`String ${i + 1} — ${pv.perString} × ${pv.wp} Wp`}
@@ -884,6 +884,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [full, setFull] = useState(false);
   /** محاكاة تدفق الطاقة المتحركة — قابلة للإيقاف. */
   const [anim, setAnim] = useState(true);
+  const [real, setReal] = useState(false);
   const [theme, setTheme] = useState<SldTheme>("paper");
   const [picked, setPicked] = useState<string | null>(null);
   const [fitH, setFitH] = useState<number | null>(null);
@@ -1060,6 +1061,17 @@ export default function SldDiagram({ params, number, actions }: Props) {
       </button>
       <button
         type="button"
+        onClick={() => setReal((v) => !v)}
+        aria-label={real ? "عرض الرموز الهندسية القياسية" : "عرض مجسمات المعدات الواقعية"}
+        title={real ? "الوضع القياسي IEC" : "العرض الواقعي للمعدات"}
+        className={`grid size-9 place-items-center rounded-full border transition ${
+          real ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-skyline hover:border-brand hover:text-brand"
+        }`}
+      >
+        <Boxes className="size-4" />
+      </button>
+      <button
+        type="button"
         onClick={() => setAnim((v) => !v)}
         aria-label={anim ? "إيقاف محاكاة تدفق الطاقة" : "تشغيل محاكاة تدفق الطاقة"}
         title={anim ? "إيقاف الحركة" : "تشغيل الحركة"}
@@ -1136,7 +1148,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
             : { transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "50% 50%" }
         }
       >
-        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} anim={anim} />
+        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} anim={anim} real={real} />
       </div>
       {inspector}
     </div>
