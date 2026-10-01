@@ -874,6 +874,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model, lengths) : []), [model, lengths]);
   const items = useMemo(() => (model ? inspectorItems(model, lengths) : {}), [model, lengths]);
+  const mppt = useMemo(() => (model ? mpptMap(model) : []), [model]);
 
 
   /**
