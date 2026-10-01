@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Download, Expand, FileDown, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, Waves, X } from "lucide-react";
+import { ArrowRight, Boxes, Download, Expand, FileDown, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, Waves, X } from "lucide-react";
 import { buildSld, type SldModel } from "@/lib/sld-engine";
 import { cableCalcs, defaultLengthOf, inspectorItems, type CableCalc, type CableLengths } from "@/lib/sld-annotations";
 import { downloadSldSheet } from "@/lib/sld-pdf";
 import { downloadSldDxf } from "@/lib/sld-dxf";
 import { mpptMap } from "@/lib/sld-mppt";
+import { EquipArt, PvRealSymbol, type EquipKind } from "@/components/sld-equipment";
 import logoAsset from "@/assets/actes-logo-sld.png.asset.json";
 
 
