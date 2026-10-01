@@ -68,7 +68,7 @@ export default function PvsystStudy({ study, actions }: Props) {
     () => capexFromQuoteItems((study.params as Record<string, unknown> | null)?.['quote_items']),
     [study.params],
   );
-  const capex = capexInput ?? quoteCapex ?? 0;
+  const capex = quoteCapex ?? 0;
 
   const eco = useMemo(() => {
     if (!result?.annualEnergy) return null;
