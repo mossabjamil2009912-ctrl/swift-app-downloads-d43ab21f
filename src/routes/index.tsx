@@ -1236,7 +1236,7 @@ function TopBar({ isAdmin, clientName = "", onExitAdmin, onSettings, onExit }: {
         </div>
         <div className="min-w-0">
           <p className="truncate text-[12px] font-bold text-muted-foreground">مرحباً بك</p>
-          <p className="truncate text-[13px] font-black text-navy">{isAdmin ? "الإدارة" : clientName || "عميل"}<span className="hidden sm:inline">{isAdmin ? " في نظام مبيعات ACTES" : " في نظام مبيعات ACTES"}</span></p>
+          <p className="truncate text-[13px] font-black text-navy">{isAdmin ? "الإدارة" : clientName || "عميل"}<span className="hidden sm:inline"> في نظام أكتس</span></p>
         </div>
         {isAdmin && (
           <span className="ms-2 hidden shrink-0 items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-black text-brand-foreground sm:inline-flex" dir="ltr">
