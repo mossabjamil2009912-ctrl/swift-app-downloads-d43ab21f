@@ -4,6 +4,8 @@
 /** عناوين مجموعات المواصفات. */
 export const GROUP_TITLES_EN: Record<string, string> = {
   "بيانات عامة": "General Data",
+  "التبريد والحماية": "Cooling & Protection",
+  "الاتصالات والاعتماد": "Communication & Certification",
   "بيانات البطارية": "Battery Data",
   "بيانات الإنفرتر الهجين (على الشبكة)": "Hybrid Inverter Data (On-grid)",
   "التشغيل والاتصالات": "Operation & Communication",
@@ -39,6 +41,19 @@ export const GROUP_TITLES_EN: Record<string, string> = {
 
 /** مسميات صفوف المواصفات. */
 export const SPEC_LABELS_EN: Record<string, string> = {
+  "نمط التجميع": "Cell configuration",
+  "الطاقة الاسمية": "Rated energy",
+  "نطاق جهد التشغيل": "Operating voltage range",
+  "معدل الشحن/التفريغ المقنن": "Rated charge/discharge rate",
+  "تيار الشحن/التفريغ القياسي": "Standard charge/discharge current",
+  "كفاءة جانب التيار المستمر": "DC side efficiency",
+  "نوع التبريد": "Cooling type",
+  "نظام إطفاء الحريق": "Fire suppression system",
+  "الأبعاد (ط × ع × ر)": "Dimensions (W × D × H)",
+  "وزن البطارية": "Battery weight",
+  "الرطوبة النسبية المسموحة": "Allowed relative humidity",
+  "الارتفاع المسموح عن سطح البحر": "Allowed altitude",
+  "معايير الاعتماد": "Certification standards",
   "الأبعاد (عرض × عمق × ارتفاع، بدون الإنفرتر)": "Dimensions (W × D × H, without inverter)",
   "الارتفاع عن سطح البحر": "Altitude",
   "نظام الإطفاء": "Fire suppression",
