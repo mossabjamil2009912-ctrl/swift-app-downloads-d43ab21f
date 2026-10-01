@@ -405,24 +405,24 @@ export function SldSvg({
           ))}
           <SpdSymbol x={xDc + 22} y={pvTop + Math.max(pvH + 8, 74) + 12} />
           <IsolatorSymbol x={xDc + wDc + 22} y={dcY - 34} color={C.dc} />
-          {(() => {
-            const n = Math.min(Math.max(inv?.mppt || 1, 1), 3);
-            return Array.from({ length: n }).map((_, i) => {
-              const y = n === 1 ? dcY : dcY - 12 + (i * 24) / (n - 1);
-              return (
-                <g key={i}>
-                  <line x1={xDc + wDc} y1={y} x2={xInv} y2={y} stroke={C.dc} strokeWidth={2} />
-                  <Node x={xDc + wDc} y={y} color={C.dc} />
-                  <Node x={xInv} y={y} color={C.dc} />
-                  {n > 1 && (
-                    <text x={xInv - 8} y={y - 4} textAnchor="end" fontFamily={F} fontSize={7} fill={C.dc}>
-                      {`MPPT ${i + 1}`}
-                    </text>
-                  )}
-                </g>
-              );
-            });
-          })()}
+          {/* توزيع السلاسل على مداخل الـ MPPT: كل مدخل بخطه وتياره وفيوزه */}
+          {mppt.map((grp, i) => {
+            const n = mppt.length;
+            const y = n === 1 ? dcY : dcY - 14 + (i * 28) / (n - 1);
+            return (
+              <g key={grp.index}>
+                <line x1={xDc + wDc} y1={y} x2={xInv} y2={y} stroke={C.dc} strokeWidth={2} />
+                <Node x={xDc + wDc} y={y} color={C.dc} />
+                <Node x={xInv} y={y} color={C.dc} />
+                <text x={xInv - 8} y={y - 4} textAnchor="end" fontFamily={F} fontSize={7} fontWeight={700} fill={C.dc}>
+                  {`MPPT ${grp.index} — ${grp.strings.length} STR (S${grp.strings.join(", S")})`}
+                </text>
+                <text x={xInv - 8} y={y + 9} textAnchor="end" fontFamily={F} fontSize={6.4} fill={C.soft}>
+                  {`${grp.imp ? `Imp ${grp.imp} A` : ""}${grp.imp && grp.vmp ? " / " : ""}${grp.vmp ? `Vmp ${grp.vmp} V` : ""}`}
+                </text>
+              </g>
+            );
+          })}
         </>
       )}
       {!dc && pv && inv && <line x1={xPv + wPv} y1={dcY} x2={xInv} y2={dcY} stroke={C.dc} strokeWidth={2} />}
