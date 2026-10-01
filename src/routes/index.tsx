@@ -1645,15 +1645,18 @@ const QUOTE_ACTIONS: { id: string; title: string; note: string; icon: ReactNode;
   { id: "aq_buy", title: "متابعة الشراء", note: "إتمام طلب المنظومة", icon: <ShoppingCart />, className: "bg-energy text-energy-foreground", chip: "bg-energy-foreground/20" },
   { id: "sales_contact", title: "التواصل مع المبيعات", note: "استفسار أو عرض رسمي", icon: <Headphones />, className: "border border-border bg-soft text-foreground", chip: "bg-brand/10 text-brand" },
   { id: "aq_study", title: "دراسة PVsyst", note: "دراسة إنتاجية تفصيلية", icon: <LineChart />, className: "bg-skyline text-skyline-foreground", chip: "bg-skyline-foreground/20" },
+  { id: "aq_eco", title: "دراسة الجدوى الاقتصادية", note: "العائد والاسترداد والوفر البيئي", icon: <BadgeDollarSign />, className: "bg-emerald-600 text-white", chip: "bg-white/20" },
   { id: "aq_sld", title: "مخطط SLD", note: "المخطط الكهربائي الأحادي", icon: <Network />, className: "bg-field text-field-foreground", chip: "bg-field-foreground/15" },
 ];
 
-function QuoteActions({ onPick, hideEngineering = false }: { onPick: (value: string) => void; hideEngineering?: boolean }) {
-  const actions = hideEngineering
-    ? QUOTE_ACTIONS.filter((a) => a.id !== "aq_study" && a.id !== "aq_sld")
-    : QUOTE_ACTIONS;
+function QuoteActions({ onPick, hideEngineering = false, onEco }: { onPick: (value: string) => void; hideEngineering?: boolean; onEco?: (() => void) | undefined }) {
+  const actions = QUOTE_ACTIONS.filter((a) => {
+    if (a.id === "aq_eco") return Boolean(onEco) && !hideEngineering;
+    if (hideEngineering) return a.id !== "aq_study" && a.id !== "aq_sld";
+    return true;
+  });
   return (
-    <div className={`grid gap-3 sm:grid-cols-2 ${hideEngineering ? "" : "xl:grid-cols-4"}`}>
+    <div className={`grid gap-3 sm:grid-cols-2 ${hideEngineering ? "" : "xl:grid-cols-3"}`}>
       {actions.map((action) => (
         <button
           key={action.id}
