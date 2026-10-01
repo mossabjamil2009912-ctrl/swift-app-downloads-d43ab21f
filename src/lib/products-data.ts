@@ -16,6 +16,8 @@ import optimusL260Catalog from "@/assets/products/pylontech-optimus-l260-hy.pdf.
 import legend112sImage from "@/assets/products/hithium-legend-112s.png.asset.json";
 import legend112sCatalog from "@/assets/products/hithium-legend-112s.pdf.asset.json";
 import cubeM1cImage from "@/assets/products/pylontech-powercube-m1c.png.asset.json";
+import uf5000Image from "@/assets/products/pylontech-uf5000.png.asset.json";
+import uf5000Catalog from "@/assets/products/pylontech-uf5000.pdf.asset.json";
 import p8 from "@/assets/products/p8.webp";
 import p9 from "@/assets/products/p9.webp";
 import p10 from "@/assets/products/p10.webp";
@@ -732,6 +734,75 @@ export const PRODUCTS: Product[] = [
     certificates: "UL1973، FCC، CE، UKCA، Bluetooth SIG",
     image: p3,
     files: sheet(c3.url),
+  },
+  {
+    id: "pylontech-uf5000",
+    category: "batteries",
+    brand: "Pylontech",
+    name: "بطارية راك Pylontech UF5000 ‏5.12kWh",
+    model: "UF5000",
+    power: "5.12 kWh",
+    description:
+      "وحدة بطارية LiFePO4 منخفضة الجهد 51.2V بسعة 5.12 كيلوواط·ساعة متوافقة مع راك 19 بوصة وقابلة للتوسعة حتى 20 وحدة.",
+    about:
+      "وحدة تخزين منخفضة الجهد من Pylontech بجهد اسمي 51.2 فولت وسعة 5.12 كيلوواط·ساعة (منها 4.864 كيلوواط·ساعة قابلة للاستخدام بعمق تفريغ 95%). تُركّب داخل راك قياسي 19 بوصة بأبعاد 442 × 452.6 × 161 مم ووزن 42 كجم، وتتوسع حتى 20 وحدة في السلسلة الواحدة، بعمر يتجاوز 6000 دورة وعمر تصميمي 15 سنة، مع اتصال RS485/CAN.",
+    features: [
+      "متوافقة مع راك قياسي 19 بوصة — تركيب مرتب وسهل",
+      "توسعة حرة حتى 20 وحدة في السلسلة الواحدة",
+      "مرونة في الاستخدام المختلط ضمن المنظومة",
+      "عمر يتجاوز 6000 دورة وعمر تصميمي 15 سنة",
+      "عمق تفريغ 95% — سعة فعلية 4.864 kWh",
+      "تيار شحن وتفريغ 100 A واستطاعة لحظية حتى 200 A لمدة 15 ثانية",
+    ],
+    uses: [
+      "التخزين المنزلي والتجاري مع الإنفرترات الهجينة 48V",
+      "أنظمة الراك متعددة الوحدات",
+      "المنظومات خارج الشبكة والاحتياطية",
+    ],
+    suitableFor:
+      "للمنظومات منخفضة الجهد 48V التي تحتاج تخزيناً قابلاً للتوسعة وحدةً بوحدة داخل راك قياسي 19 بوصة.",
+    specs: [
+      {
+        title: "المواصفات الكهربائية",
+        rows: [
+          ["الموديل", "UF5000"],
+          ["الجهد الاسمي", "51.2 Vdc"],
+          ["سعة وحدة البطارية", "5.12 kWh"],
+          ["السعة القابلة للاستخدام", "4.864 kWh"],
+          ["عمق التفريغ", "95%"],
+          ["تيار الشحن/التفريغ (عادي)", "100 A"],
+          ["أقصى تيار شحن/تفريغ", "100 A"],
+          ["تيار الذروة", "121~200 A @ 15 ثانية"],
+          ["تيار القصر / زمنه", "< 2000 A / 1 ms"],
+          ["دورة الحياة (‎@25 °C)", "> 6000"],
+          ["العمر التصميمي (‎@25 °C)", "15 سنة"],
+        ],
+      },
+      {
+        title: "التوسعة والاتصال",
+        rows: [
+          ["عدد الوحدات في السلسلة الواحدة", "20"],
+          ["منفذ الاتصال", "RS485 / CAN"],
+          ["التوافق", "راك قياسي 19 بوصة"],
+        ],
+      },
+      {
+        title: "الميكانيكية والبيئة",
+        rows: [
+          ["الأبعاد (ع × ع × ر)", "442 × 452.6 × 161 mm"],
+          ["الوزن", "42 kg"],
+          ["درجة الحماية", "IP20"],
+          ["حرارة التشغيل — شحن", "−10~55 °C"],
+          ["حرارة التشغيل — تفريغ", "−10~55 °C"],
+          ["حرارة التخزين", "−20~60 °C"],
+          ["الرطوبة", "5%~95% بدون تكثيف"],
+          ["الارتفاع عن سطح البحر", "4000 m"],
+        ],
+      },
+    ],
+    certificates: "IEC62619، UN38.3، RoHS، Reach، WEEE، MSDS",
+    image: uf5000Image.url,
+    files: sheet(uf5000Catalog.url),
   },
   {
     id: "pylontech-rv12314",

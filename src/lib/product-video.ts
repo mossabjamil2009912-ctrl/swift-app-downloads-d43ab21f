@@ -9,6 +9,8 @@ import suntechVideo from "@/assets/showroom/suntech-stp595s-c72-nsh.mp4.asset.js
 import suntechPoster from "@/assets/showroom/suntech-stp595s-c72-nsh.jpg";
 import pylontechVideo from "@/assets/showroom/pylontech-rv12314.mp4.asset.json";
 import pylontechPoster from "@/assets/showroom/pylontech-rv12314.jpg";
+import uf5000Video from "@/assets/showroom/pylontech-uf5000.mp4.asset.json";
+import uf5000Poster from "@/assets/showroom/pylontech-uf5000.jpg";
 import deyeVideo from "@/assets/showroom/deye-sun-3-6k-sg04lp1.mp4.asset.json";
 import deyePoster from "@/assets/showroom/deye-sun-3-6k-sg04lp1.jpg";
 import hithiumVideo from "@/assets/showroom/hithium-heroee-maxpower-16.mp4.asset.json";
@@ -92,6 +94,16 @@ export const PRODUCT_VIDEOS: Record<string, ProductVideo> = {
       { at: 3.0, until: 5.6, label: "سعة الخلايا", value: "314 Ah" },
       { at: 5.6, until: 7.8, label: "سعة البطارية", value: "4019.2 Wh" },
       { at: 7.8, until: 10, label: "عمر الدورات", value: "10000 دورة" },
+    ],
+  },
+  "pylontech-uf5000": {
+    src: uf5000Video.url,
+    poster: uf5000Poster,
+    cues: [
+      { at: 0.4, until: 2.2, label: "سعة وحدة البطارية", value: "5.12 kWh" },
+      { at: 2.2, until: 3.6, label: "الجهد الاسمي", value: "51.2 Vdc" },
+      { at: 3.6, until: 4.8, label: "عدد الوحدات في السلسلة", value: "20" },
+      { at: 4.8, until: 6.0, label: "الأبعاد الحقيقية", value: "442 × 452.6 × 161 mm" },
     ],
   },
   "deye-sun-3-6k-sg04lp1": {
@@ -399,6 +411,7 @@ const SPOKEN_MODELS: Array<{ match: RegExp; spoken: string | null }> = [
   { match: /LEGEND\s*112C/i, spoken: "ليجند 112 سي" },
   { match: /LEGEND\s*112S/i, spoken: "ليجند 112 إس" },
   { match: /^L260-HY/i, spoken: "أوبتيموس إل 260 هايبرد" },
+  { match: /^UF5000/i, spoken: "موديل يو إف 5000" },
 ];
 
 /** الموديل بصيغة منطوقة سلسة، أو null إذا كان من الأفضل عدم نطقه. */
