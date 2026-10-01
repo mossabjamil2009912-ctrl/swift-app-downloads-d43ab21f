@@ -44,21 +44,60 @@ type Props = {
 
 /** شاشة دراسة PVsyst — بنفس تصميم ومحتوى تقرير PVsyst V8.1.2 الرسمي. */
 export default function PvsystStudy({ study, actions }: Props) {
-  const result = useMemo(
-    () =>
-      buildPvsystStudy(study.params, {
-        city: study.city,
-        customer: study.customer,
-        reference: study.number,
-        monthlyConsumption: study.monthlyConsumption,
-      }),
+  // ==== تعديل اختياري لزاويتي الميلان والاتجاه ====
+  const [geoOpen, setGeoOpen] = useState(false);
+  const [tilt, setTilt] = useState<number | null>(null);
+  const [azimuth, setAzimuth] = useState(0);
+
+  // ==== مدخلات الدراسة الاقتصادية ====
+  const [ecoOpen, setEcoOpen] = useState(true);
+  const [capexInput, setCapexInput] = useState<number | null>(null);
+  const [tariff, setTariff] = useState(DEFAULT_TARIFF_USD);
+  const [dieselPrice, setDieselPrice] = useState(1.1);
+
+  const fallback = useMemo(
+    () => ({
+      city: study.city,
+      customer: study.customer,
+      reference: study.number,
+      monthlyConsumption: study.monthlyConsumption,
+    }),
     [study],
   );
+
+  const result = useMemo(
+    () => buildPvsystStudy(study.params, fallback, { tilt, azimuth }),
+    [study.params, fallback, tilt, azimuth],
+  );
+  /** النتيجة بالزوايا الافتراضية للموقع — للمقارنة */
+  const baseResult = useMemo(() => buildPvsystStudy(study.params, fallback), [study.params, fallback]);
+
+  const quoteCapex = useMemo(
+    () => capexFromQuoteItems((study.params as Record<string, unknown> | null)?.['quote_items']),
+    [study.params],
+  );
+  const capex = capexInput ?? quoteCapex ?? 0;
+
+  const eco = useMemo(() => {
+    if (!result?.annualEnergy) return null;
+    return buildEconomics({
+      annualEnergy: result.annualEnergy,
+      kwp: result.system.kwp,
+      capex,
+      tariff,
+      dieselPrice,
+    });
+  }, [result, capex, tariff, dieselPrice]);
 
   if (!result) return null;
   const s = result.system;
   const months = result.months;
   const hasMonths = months.length === 12;
+  const baseAnnual = baseResult?.annualEnergy ?? null;
+  const deltaPct =
+    baseAnnual && result.annualEnergy && s.orientationCustom
+      ? ((result.annualEnergy - baseAnnual) / baseAnnual) * 100
+      : null;
 
   const project = result.customer || result.reference || "ACTES Project";
   const sysTitle = s.batteryKwh ? "Grid-Connected System with storage" : "Grid-Connected System";
