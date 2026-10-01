@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Download, Expand, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, X } from "lucide-react";
+import { ArrowRight, Download, Expand, FileDown, ImageDown, LineChart, Minus, Move, Network, Palette, Plus, Ruler, RotateCcw, Shrink, ShoppingCart, Waves, X } from "lucide-react";
 import { buildSld, type SldModel } from "@/lib/sld-engine";
 import { cableCalcs, defaultLengthOf, inspectorItems, type CableCalc, type CableLengths } from "@/lib/sld-annotations";
 import { downloadSldSheet } from "@/lib/sld-pdf";
+import { downloadSldDxf } from "@/lib/sld-dxf";
+import { mpptMap } from "@/lib/sld-mppt";
 import logoAsset from "@/assets/actes-logo-sld.png.asset.json";
 
 
@@ -249,7 +251,7 @@ export type SldFlow = "none" | "day" | "night" | "outage";
 
 /** يرسم المخطط الأحادي الكامل داخل عنصر SVG واحد. */
 export function SldSvg({
-  m, fit = false, theme = "paper", pick, active, calcs, flow = "none",
+  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true,
 }: {
   m: SldModel;
   fit?: boolean;
@@ -258,6 +260,8 @@ export function SldSvg({
   active?: string | null | undefined;
   calcs?: CableCalc[] | undefined;
   flow?: SldFlow;
+  /** تشغيل محاكاة تدفق الطاقة المتحركة على المسارات العاملة. */
+  anim?: boolean;
 }) {
   const W = 1240;
   const drawnStrings = Math.min(m.pv?.strings || 1, 4);
@@ -267,8 +271,9 @@ export function SldSvg({
   const busY = pvTop + pvH / 2;
   const batY = busY + 150;
   const bottom = Math.max(busY + 120, batY + 70);
-  const earthY = bottom + 40;
-  const H = earthY + 46;
+  const earthY = bottom + 64;
+  const H = earthY + 64;
+  const mppt = mpptMap(m);
 
   const xPv = 24;
   const wPv = 180;
@@ -329,6 +334,19 @@ export function SldSvg({
         <marker id="sld-arrow" markerWidth={8} markerHeight={8} refX={7} refY={4} orient="auto">
           <path d="M0,0 L8,4 L0,8 z" fill={C.ac} />
         </marker>
+        <style>{`
+          @keyframes sldFlowDash { to { stroke-dashoffset: -24; } }
+          .sldFlow, .sldFlowR {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 13 11;
+            opacity: 0.95;
+            animation: sldFlowDash 0.85s linear infinite;
+          }
+          .sldFlowR { animation-direction: reverse; }
+          @media (prefers-reduced-motion: reduce) { .sldFlow, .sldFlowR { animation: none; } }
+        `}</style>
       </defs>
 
       {flowNote && (
@@ -403,24 +421,24 @@ export function SldSvg({
           ))}
           <SpdSymbol x={xDc + 22} y={pvTop + Math.max(pvH + 8, 74) + 12} />
           <IsolatorSymbol x={xDc + wDc + 22} y={dcY - 34} color={C.dc} />
-          {(() => {
-            const n = Math.min(Math.max(inv?.mppt || 1, 1), 3);
-            return Array.from({ length: n }).map((_, i) => {
-              const y = n === 1 ? dcY : dcY - 12 + (i * 24) / (n - 1);
-              return (
-                <g key={i}>
-                  <line x1={xDc + wDc} y1={y} x2={xInv} y2={y} stroke={C.dc} strokeWidth={2} />
-                  <Node x={xDc + wDc} y={y} color={C.dc} />
-                  <Node x={xInv} y={y} color={C.dc} />
-                  {n > 1 && (
-                    <text x={xInv - 8} y={y - 4} textAnchor="end" fontFamily={F} fontSize={7} fill={C.dc}>
-                      {`MPPT ${i + 1}`}
-                    </text>
-                  )}
-                </g>
-              );
-            });
-          })()}
+          {/* توزيع السلاسل على مداخل الـ MPPT: كل مدخل بخطه وتياره وفيوزه */}
+          {mppt.map((grp, i) => {
+            const n = mppt.length;
+            const y = n === 1 ? dcY : dcY - 14 + (i * 28) / (n - 1);
+            return (
+              <g key={grp.index}>
+                <line x1={xDc + wDc} y1={y} x2={xInv} y2={y} stroke={C.dc} strokeWidth={2} />
+                <Node x={xDc + wDc} y={y} color={C.dc} />
+                <Node x={xInv} y={y} color={C.dc} />
+                <text x={xInv - 8} y={y - 4} textAnchor="end" fontFamily={F} fontSize={7} fontWeight={700} fill={C.dc}>
+                  {`MPPT ${grp.index} — ${grp.strings.length} STR (S${grp.strings.join(", S")})`}
+                </text>
+                <text x={xInv - 8} y={y + 9} textAnchor="end" fontFamily={F} fontSize={6.4} fill={C.soft}>
+                  {`${grp.imp ? `Imp ${grp.imp} A` : ""}${grp.imp && grp.vmp ? " / " : ""}${grp.vmp ? `Vmp ${grp.vmp} V` : ""}`}
+                </text>
+              </g>
+            );
+          })}
         </>
       )}
       {!dc && pv && inv && <line x1={xPv + wPv} y1={dcY} x2={xInv} y2={dcY} stroke={C.dc} strokeWidth={2} />}
@@ -695,17 +713,60 @@ export function SldSvg({
         );
       })()}
 
-      {/* ── ناقل التأريض الرئيسي الموحد (PE) ─────────────────────────────── */}
+      {/* ── محاكاة تدفق الطاقة المتحرك على المسارات العاملة ───────────────── */}
+      {anim && flow !== "none" && (() => {
+        const riser = xInv + wInv / 2;
+        const backup = Boolean(bat && inv);
+        const loadY = backup ? dcY + 86 : m.grid ? dcY + 34 : dcY;
+        const pvOn = flow === "day" && Boolean(pv && inv);
+        const gridOn = Boolean(m.grid && ac && flow !== "outage");
+        const batOn = Boolean(bat && inv);
+        const charging = flow === "day";
+        return (
+          <g pointerEvents="none">
+            {pvOn && (
+              <>
+                <path d={`M ${xPv + 90} ${busY} L ${dc ? xDc : xInv} ${busY}`} className="sldFlow" stroke={C.dc} />
+                <path d={`M ${dcOutX} ${dcY} L ${xInv} ${dcY}`} className="sldFlow" stroke={C.dc} />
+              </>
+            )}
+            {batOn && (
+              <path
+                d={`M ${riser} ${batY} L ${riser} ${invY + invH}`}
+                className={charging ? "sldFlowR" : "sldFlow"}
+                stroke={C.dc}
+              />
+            )}
+            {gridOn && (
+              <path d={`M ${xInv + wInv} ${dcY} L ${xOut - 26} ${dcY}`} className="sldFlow" stroke={C.ac} />
+            )}
+            {backup && (
+              <path
+                d={`M ${xInv + wInv} ${dcY + 30} L ${xInv + wInv + 18} ${dcY + 30} L ${xInv + wInv + 18} ${loadY} L ${xOut} ${loadY}`}
+                className="sldFlow"
+                stroke={C.ac}
+              />
+            )}
+            {!backup && ac && flow !== "outage" && (
+              <path d={`M ${xInv + wInv} ${dcY} L ${xOut - 26} ${dcY} L ${xOut - 26} ${loadY} L ${xOut} ${loadY}`} className="sldFlow" stroke={C.ac} />
+            )}
+          </g>
+        );
+      })()}
+
+      {/* ── شبكة التأريض الشاملة ومانعات الصواعق (IEC 60364-7-712) ───────── */}
       {(() => {
-        const bonds = [
-          xPv + 60,
-          dc ? xDc + wDc / 2 : null,
-          bat ? xInv - 244 : null,
-          inv ? xInv + wInv / 2 : null,
-          ac ? xAc + wAc / 2 : null,
-          m.ats ? xAts + wAts / 2 : null,
-          xOut + 40,
-        ].filter((v): v is number => v !== null);
+        const bonds: { x: number; label: string }[] = [
+          { x: xPv + 60, label: "ARRAY FRAMES 6 mm²" },
+          ...(dc ? [{ x: xDc + wDc / 2, label: "DC BOARD + SPD" }] : []),
+          ...(bat ? [{ x: xInv - 244, label: "BATTERY RACK" }] : []),
+          ...(inv ? [{ x: xInv + wInv / 2, label: "INVERTER CHASSIS" }] : []),
+          ...(ac ? [{ x: xAc + wAc / 2, label: "AC BOARD + SPD" }] : []),
+          ...(m.ats ? [{ x: xAts + wAts / 2, label: "ATS ENCLOSURE" }] : []),
+          { x: xOut + 40, label: "LOADS PANEL PE" },
+        ];
+        const mebX = xInv + wInv / 2 - 86;
+        const mebW = 172;
         return (
           <g style={pick ? { cursor: "pointer" } : undefined} onClick={pick ? () => pick("earth") : undefined}>
             <line
@@ -726,18 +787,62 @@ export function SldSvg({
               strokeWidth={active === "earth" ? 3.4 : 2.4}
               strokeDasharray="7 9"
             />
-            {bonds.map((x) => (
-              <g key={x}>
-                <line x1={x} y1={earthY - 26} x2={x} y2={earthY} stroke={C.earth} strokeWidth={1.4} strokeDasharray="4 3" />
-                <Node x={x} y={earthY} color={C.earth} />
+            {bonds.map((bnd) => (
+              <g key={bnd.x}>
+                <line x1={bnd.x} y1={earthY - 26} x2={bnd.x} y2={earthY} stroke={C.earth} strokeWidth={1.4} strokeDasharray="4 3" />
+                <Node x={bnd.x} y={earthY} color={C.earth} />
+                <text x={bnd.x} y={earthY + 13} textAnchor="middle" fontFamily={F} fontSize={6.6} fill={C.earth}>
+                  {bnd.label}
+                </text>
               </g>
             ))}
-            <EarthSymbol x={xOut + wOut - 40} y={earthY + 8} />
-            <text x={xOut + wOut - 40} y={earthY + 34} textAnchor="middle" fontFamily={F} fontSize={8} fill={C.earth}>
-              {m.earth ? "EARTHING PIT < 5 Ω" : "EARTH ELECTRODE"}
+
+            {/* قضيب التأريض الرئيسي (Main Earth Bar) */}
+            <rect x={mebX} y={earthY - 10} width={mebW} height={20} fill={C.fill} stroke={C.earth} strokeWidth={1.6} />
+            <text x={mebX + mebW / 2} y={earthY + 4} textAnchor="middle" fontFamily={F} fontSize={7.6} fontWeight={700} fill={C.earth}>
+              MAIN EARTH BAR (MEB) — Cu 25×3 mm
             </text>
+
+            {/* مانعات الصواعق Type I+II على جانبي DC و AC */}
+            {dc && (
+              <g>
+                <SpdSymbol x={xDc + wDc / 2 - 34} y={earthY - 44} />
+                <line x1={xDc + wDc / 2 - 34} y1={earthY - 29} x2={xDc + wDc / 2 - 34} y2={earthY} stroke={C.earth} strokeWidth={1.4} />
+                <Node x={xDc + wDc / 2 - 34} y={earthY} color={C.earth} />
+                <text x={xDc + wDc / 2 - 34} y={earthY - 56} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  SPD TYPE I+II — DC
+                </text>
+              </g>
+            )}
+            {ac && (
+              <g>
+                <SpdSymbol x={xAc + wAc / 2 + 34} y={earthY - 44} />
+                <line x1={xAc + wAc / 2 + 34} y1={earthY - 29} x2={xAc + wAc / 2 + 34} y2={earthY} stroke={C.earth} strokeWidth={1.4} />
+                <Node x={xAc + wAc / 2 + 34} y={earthY} color={C.earth} />
+                <text x={xAc + wAc / 2 + 34} y={earthY - 56} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  SPD TYPE I+II — AC
+                </text>
+              </g>
+            )}
+
+            {/* موصل هابط لمانعة الصواعق الخارجية (LPS) من هيكل الألواح */}
+            {pv && (
+              <g>
+                <line x1={xPv + 18} y1={earthY - 40} x2={xPv + 18} y2={earthY} stroke={C.earth} strokeWidth={1.8} />
+                <Node x={xPv + 18} y={earthY} color={C.earth} />
+                <text x={xPv + 18} y={earthY - 46} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  LPS DOWN CONDUCTOR 50 mm²
+                </text>
+              </g>
+            )}
+
+            <EarthSymbol x={xOut + wOut - 40} y={earthY + 26} />
+            <text x={xOut + wOut - 40} y={earthY + 52} textAnchor="middle" fontFamily={F} fontSize={8} fill={C.earth}>
+              {m.earth ? "EARTHING PIT < 5 Ω" : "EARTH ELECTRODE < 5 Ω"}
+            </text>
+            <line x1={xOut + wOut - 40} y1={earthY} x2={xOut + wOut - 40} y2={earthY + 18} stroke={C.earth} strokeWidth={2} />
             <text x={xPv} y={earthY - 13} fontFamily={F} fontSize={8.4} fontWeight={700} fill={C.earth}>
-              PE — MAIN EARTHING BUS 1×16 mm² (frames 1×6 mm²)
+              PE — MAIN EARTHING BUS 1×16 mm² (frames 1×6 mm²) — TN-S
             </text>
           </g>
         );
@@ -753,6 +858,8 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [full, setFull] = useState(false);
+  /** محاكاة تدفق الطاقة المتحركة — قابلة للإيقاف. */
+  const [anim, setAnim] = useState(true);
   const [theme, setTheme] = useState<SldTheme>("paper");
   const [picked, setPicked] = useState<string | null>(null);
   const [fitH, setFitH] = useState<number | null>(null);
@@ -767,6 +874,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const calcs: CableCalc[] = useMemo(() => (model ? cableCalcs(model, lengths) : []), [model, lengths]);
   const items = useMemo(() => (model ? inspectorItems(model, lengths) : {}), [model, lengths]);
+  const mppt = useMemo(() => (model ? mpptMap(model) : []), [model]);
 
 
   /**
@@ -919,6 +1027,26 @@ export default function SldDiagram({ params, number, actions }: Props) {
       </button>
       <button
         type="button"
+        onClick={() => downloadSldDxf(model, number, calcs)}
+        aria-label="تصدير المخطط كملف أوتوكاد DXF"
+        title="تصدير DXF لأوتوكاد"
+        className="grid size-9 place-items-center rounded-full border border-border bg-card text-skyline transition hover:border-brand hover:text-brand"
+      >
+        <FileDown className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setAnim((v) => !v)}
+        aria-label={anim ? "إيقاف محاكاة تدفق الطاقة" : "تشغيل محاكاة تدفق الطاقة"}
+        title={anim ? "إيقاف الحركة" : "تشغيل الحركة"}
+        className={`grid size-9 place-items-center rounded-full border transition ${
+          anim ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-skyline hover:border-brand hover:text-brand"
+        }`}
+      >
+        <Waves className="size-4" />
+      </button>
+      <button
+        type="button"
         onClick={() => { setFull((v) => !v); setPan({ x: 0, y: 0 }); }}
         aria-label={full ? "إنهاء ملء الشاشة" : "ملء الشاشة"}
         className="grid size-9 place-items-center rounded-full border border-border bg-card text-skyline transition hover:border-brand hover:text-brand"
@@ -984,7 +1112,7 @@ export default function SldDiagram({ params, number, actions }: Props) {
             : { transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "50% 50%" }
         }
       >
-        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} />
+        <SldSvg m={model} fit theme={theme} pick={setPicked} active={picked} calcs={calcs} flow={flow} anim={anim} />
       </div>
       {inspector}
     </div>
@@ -1026,8 +1154,29 @@ export default function SldDiagram({ params, number, actions }: Props) {
       <div className="mt-3">{flowBar}</div>
       <div className="mt-2">{canvas}</div>
       <p className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Move className="size-3" /> اسحب المخطط للتحريك، و + و − للتكبير، واضغط أي مكوّن لعرض مواصفاته الفنية، وزر الصورة لحفظ المخطط بدقة عالية.
+        <Move className="size-3" /> اسحب المخطط للتحريك، و + و − للتكبير، واضغط أي مكوّن لعرض مواصفاته، وزر الموجة لتشغيل/إيقاف حركة تدفق الطاقة، وزر الملف لتصدير DXF لأوتوكاد.
       </p>
+
+      {mppt.length > 0 && (
+        <div className="mt-3 rounded-md border border-border bg-muted/40 p-2.5" dir="rtl">
+          <p className="text-[11px] font-black text-skyline">توزيع السلاسل على مداخل الـ MPPT</p>
+          <div className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
+            {mppt.map((grp) => (
+              <div key={grp.index} className="flex items-center justify-between gap-2 rounded-md bg-card px-2.5 py-1.5">
+                <span className="text-[10.5px] font-black text-skyline">{`مدخل MPPT ${grp.index}`}</span>
+                <span className="text-[10px] font-bold text-muted-foreground" dir="ltr">
+                  {`${grp.strings.length} string${grp.strings.length > 1 ? "s" : ""} (S${grp.strings.join(", S")})`}
+                  {grp.imp ? ` — Imp ${grp.imp} A` : ""}
+                  {grp.isc ? ` / fuse ≥ ${grp.isc} A` : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[9.5px] text-muted-foreground">
+            التوزيع متوازن بين المداخل (فارق لا يتجاوز سلسلة واحدة) ويُراجع ميدانياً حسب اتجاه وميل كل صف ألواح.
+          </p>
+        </div>
+      )}
 
 
 
