@@ -384,6 +384,7 @@ const SPOKEN_MODELS: Array<{ match: RegExp; spoken: string | null }> = [
   { match: /^HeroEE MaxPower/i, spoken: null },
   { match: /^A300-HY/i, spoken: "أوبتيموس إيه 300 هايبرد" },
   { match: /LEGEND\s*112C/i, spoken: "ليجند 112 سي" },
+  { match: /^L260-HY/i, spoken: "أوبتيموس إل 260 هايبرد" },
 ];
 
 /** الموديل بصيغة منطوقة سلسة، أو null إذا كان من الأفضل عدم نطقه. */
