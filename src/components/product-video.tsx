@@ -24,6 +24,7 @@ export default function ProductVideoPlayer({
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const narration = narrationProp || videoNarration(title, video);
+  const playableSrc = useResolvedVideoSrc(video.src);
   const spokenRef = useRef("");
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
