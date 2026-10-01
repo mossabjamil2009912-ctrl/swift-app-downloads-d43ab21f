@@ -1046,6 +1046,60 @@ function ClientLogin({ onSuccess, onCancel }: { onSuccess: (name: string, code: 
   );
 }
 
+// نافذة دخول مصغّرة فوق الشاشة (لا تملأ الشاشة) — تظهر عند طلب عرض سعر لأول مرة
+function ClientLoginDialog({ onSuccess, onCancel }: { onSuccess: (name: string, code: string) => void; onCancel: () => void }) {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!name.trim()) return setError("الرجاء إدخال اسم العميل");
+    if (!code.trim()) return setError("الرجاء إدخال رقم العميل");
+    setError("");
+    onSuccess(name.trim(), code.trim());
+  };
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="تسجيل الدخول" dir="rtl" className="fixed inset-0 z-[60] grid place-items-center bg-navy/60 px-5 backdrop-blur-sm">
+      <form onSubmit={submit} className="w-full max-w-[320px] rounded-2xl border border-border bg-card p-5 shadow-2xl">
+        <div className="text-center">
+          <div className="mx-auto grid size-11 place-items-center rounded-full bg-brand text-brand-foreground"><UserCircle className="size-6" /></div>
+          <h2 className="mt-2.5 text-lg font-black">تسجيل الدخول</h2>
+          <p className="mt-1 text-[11px] text-muted-foreground">أدخل بياناتك لمتابعة طلب عرض السعر</p>
+        </div>
+        <label className="mt-4 block text-xs font-bold">اسم العميل</label>
+        <input
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="الاسم الكامل"
+          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-brand"
+        />
+        <label className="mt-3 block text-xs font-bold">رقم العميل</label>
+        <input
+          inputMode="numeric"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          placeholder="مثال: 7xxxxxxxx"
+          className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:border-brand"
+        />
+        {error && <p className="mt-2 text-[11px] font-bold text-destructive">{error}</p>}
+        <button
+          type="submit"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-black text-brand-foreground transition hover:opacity-90"
+        >
+          دخول ومتابعة
+        </button>
+        <button type="button" onClick={onCancel} className="mt-2 w-full text-center text-[11px] font-bold text-muted-foreground transition hover:text-foreground">
+          إلغاء
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 function AdminLogin({ onSuccess, onCancel }: { onSuccess: (password: string) => void; onCancel: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
