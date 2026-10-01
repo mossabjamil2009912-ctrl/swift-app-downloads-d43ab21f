@@ -334,6 +334,19 @@ export function SldSvg({
         <marker id="sld-arrow" markerWidth={8} markerHeight={8} refX={7} refY={4} orient="auto">
           <path d="M0,0 L8,4 L0,8 z" fill={C.ac} />
         </marker>
+        <style>{`
+          @keyframes sldFlowDash { to { stroke-dashoffset: -24; } }
+          .sldFlow, .sldFlowR {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 13 11;
+            opacity: 0.95;
+            animation: sldFlowDash 0.85s linear infinite;
+          }
+          .sldFlowR { animation-direction: reverse; }
+          @media (prefers-reduced-motion: reduce) { .sldFlow, .sldFlowR { animation: none; } }
+        `}</style>
       </defs>
 
       {flowNote && (
