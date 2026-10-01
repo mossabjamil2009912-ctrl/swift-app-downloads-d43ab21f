@@ -179,6 +179,12 @@ export type PvsystStudyResult = {
     phase: string | null;
     tilt: number | null;
     azimuth: string | null;
+    /** زاوية الميلان الافتراضية الموصى بها للموقع */
+    baseTilt: number | null;
+    /** زاوية الاتجاه بالدرجات: 0 = جنوب، سالب = شرق، موجب = غرب */
+    azimuthDeg: number | null;
+    /** هل عُدّلت زوايا التركيب يدوياً عن القيم الافتراضية */
+    orientationCustom: boolean;
     /** نسبة قدرة الألواح إلى قدرة الإنفرترات Pnom ratio */
     pnomRatio: number | null;
     strings: number | null;
