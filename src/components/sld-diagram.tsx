@@ -858,6 +858,8 @@ export default function SldDiagram({ params, number, actions }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [full, setFull] = useState(false);
+  /** محاكاة تدفق الطاقة المتحركة — قابلة للإيقاف. */
+  const [anim, setAnim] = useState(true);
   const [theme, setTheme] = useState<SldTheme>("paper");
   const [picked, setPicked] = useState<string | null>(null);
   const [fitH, setFitH] = useState<number | null>(null);
