@@ -9,6 +9,8 @@ import optimusA300Image from "@/assets/products/pylontech-optimus-a300-hy.png.as
 import optimusA300Catalog from "@/assets/products/pylontech-optimus-a300-hy.pdf.asset.json";
 import lithium12v314ahImage from "@/assets/products/lithium-12v-314ah.png.asset.json";
 import heroeeNeoPower4G2Catalog from "@/assets/products/hithium-heroee-neopower-4-g2.pdf.asset.json";
+import legend112cImage from "@/assets/products/hithium-legend-112c.png.asset.json";
+import legend112cCatalog from "@/assets/products/hithium-legend-112c.pdf.asset.json";
 import p7 from "@/assets/products/p7.webp";
 import p8 from "@/assets/products/p8.webp";
 import p9 from "@/assets/products/p9.webp";
@@ -913,6 +915,41 @@ export const PRODUCTS: Product[] = [
       "UN38.3، UN 3480، IEC62619، IEC62040-1، CE، UKCA (EMC/RED)، VDE2510-50، UL1973، UL9540A، G99، VDE-AR-N 4105، EN 50549-1، EN 50549-10، EIFS 2018.2، IEC 62116، IEC 61727، IEC 60068، IEC 61683، EN 50530",
     image: optimusA300Image.url,
     files: [{ kind: "Datasheet", label: "الكتالوج / Datasheet الرسمي", url: optimusA300Catalog.url }],
+  },
+  {
+    id: "hithium-heroee-legend-112c",
+    category: "storage",
+    brand: "HiTHIUM — HeroEE",
+    name: "خزانة تخزين HiTHIUM HeroEE LEGEND 112C التجارية والصناعية",
+    model: "HeroEE LEGEND 112C",
+    power: "112.5 kWh",
+    description: "خزانة تخزين طاقة تجارية وصناعية بسعة 112.5kWh وجهد 358.4V بتصميم معياري DC/AC منفصل.",
+    about:
+      "LEGEND 112C خزانة تخزين طاقة للتطبيقات التجارية والصناعية (C&I ESS) من HiTHIUM — HeroEE، ببطاريات ليثيوم فوسفات الحديد LiFePO4 بتجميع 1P112S وسعة اسمية 112.5 kWh وجهد اسمي 358.4 فولت وسعة خلية 314 أمبير/ساعة. تعمل بمعدل شحن وتفريغ 0.5P بعمر يصل إلى 11000 دورة، وتضم خوارزمية إدارة حرارية ذكية وتبريداً هوائياً ونظام إطفاء إيروسول ومراقبة الحرارة والدخان، بحماية IP55 ومقاومة تآكل C3. تصميمها المعياري بفصل DC عن AC يتيح التوسعة بالتوازي بمرونة.",
+    features: [
+      "إدارة حرارية ذكية ترفع كفاءة التحويل في النظام",
+      "عمر تشغيلي يصل إلى 11000 دورة عند 25 °م و100% عمق تفريغ",
+      "نظام إطفاء إيروسول مدمج مع مراقبة الحرارة والدخان",
+      "تصميم معياري بفصل DC/AC يسمح بالتوسعة بالتوازي",
+      "إمكانية تخصيص مستويات جهد الخرج واستراتيجيات التحكم",
+      "خزانة خارجية بحماية IP55 ومقاومة تآكل C3 لبيئات التشغيل القاسية",
+    ],
+    uses: [
+      "المصانع والمنشآت الصناعية",
+      "المراكز التجارية والفنادق والمستشفيات",
+      "مشاريع تقليم الذروة وإزاحة الطاقة",
+      "منظومات الطاقة الشمسية التجارية الكبيرة",
+    ],
+    suitableFor: "للمنشآت التجارية والصناعية التي تحتاج وحدة تخزين خارجية بسعة ~112 كيلوواط ساعة قابلة للتوسعة بالتوازي مع إنفرتر منفصل.",
+    specs: [
+      { title: "بيانات البطارية", rows: [["نوع البطارية", "LiFePO4"], ["نمط التجميع", "1P112S"], ["الطاقة الاسمية", "112.5 kWh"], ["السعة الاسمية", "314 Ah"], ["الجهد الاسمي", "358.4 V"], ["نطاق جهد التشغيل", "302.4–408.8 V"], ["معدل الشحن/التفريغ المقنن", "0.5P"], ["تيار الشحن/التفريغ القياسي", "157 A / 157 A"], ["عمر الدورات", "11000 دورة @ (25 °م، 100% DOD، 0.5P، @70% SOH)"], ["كفاءة جانب التيار المستمر", "≥ 93%"]] },
+      { title: "التبريد والحماية", rows: [["نوع التبريد", "تبريد هوائي (Air Cooling)"], ["نظام إطفاء الحريق", "إيروسول (Aerosol)"], ["الحمايات", "حرارة زائدة / حرارة منخفضة / شحن زائد / تيار زائد / جهد منخفض"], ["درجة الحماية", "IP55"], ["مقاومة التآكل", "C3"], ["الضوضاء", "أقل من 75 dB"]] },
+      { title: "بيانات عامة", rows: [["الأبعاد (ط × ع × ر)", "900 × 1000 × 2280 mm"], ["وزن البطارية", "1400 kg"], ["حرارة التشغيل", "الشحن: 0 °م إلى 55 °م — التفريغ: −20 °م إلى 55 °م"], ["حرارة التخزين", "−20 °م إلى 60 °م"], ["الرطوبة النسبية المسموحة", "0–95% (بدون تكثيف)"], ["الارتفاع المسموح عن سطح البحر", "≤ 4000 m (تخفيض الأداء فوق 2000 m)"]] },
+      { title: "الاتصالات والاعتماد", rows: [["منافذ الاتصال", "485 / CAN / Ethernet"], ["معايير الاعتماد", "UN38.3"]] },
+    ],
+    certificates: "UN38.3",
+    image: legend112cImage.url,
+    files: [{ kind: "Datasheet", label: "الكتالوج / Datasheet الرسمي", url: legend112cCatalog.url }],
   },
 ];
 
