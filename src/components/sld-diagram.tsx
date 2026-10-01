@@ -263,7 +263,7 @@ export type SldFlow = "none" | "day" | "night" | "outage";
 
 /** يرسم المخطط الأحادي الكامل داخل عنصر SVG واحد. */
 export function SldSvg({
-  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true,
+  m, fit = false, theme = "paper", pick, active, calcs, flow = "none", anim = true, real = false,
 }: {
   m: SldModel;
   fit?: boolean;
@@ -274,6 +274,8 @@ export function SldSvg({
   flow?: SldFlow;
   /** تشغيل محاكاة تدفق الطاقة المتحركة على المسارات العاملة. */
   anim?: boolean;
+  /** عرض المعدات بمجسماتها الواقعية بدل الرموز القياسية. */
+  real?: boolean;
 }) {
   const W = 1240;
   const drawnStrings = Math.min(m.pv?.strings || 1, 4);
@@ -286,6 +288,9 @@ export function SldSvg({
   const earthY = bottom + 64;
   const H = earthY + 64;
   const mppt = mpptMap(m);
+  /** البطاريات عالية الجهد تُرسم خزانة برجية، والمنخفضة وحدة جدارية. */
+  const batArt: EquipKind = (m.battery?.vdc || 0) >= 96 ? "battery-rack" : "battery-wall";
+
 
   const xPv = 24;
   const wPv = 180;
