@@ -918,7 +918,7 @@ function StartScreen({ clientName, onStart }: { clientName: string; onStart: () 
           <img src={actesSplashLogo} alt="ACTES — أكتس لأنظمة الطاقة وحلولها" className="h-20 w-auto object-contain lg:h-28" />
           <p className="mt-5 text-[11px] font-black tracking-[0.34em] text-brand lg:text-xs lg:tracking-[0.42em]" dir="ltr">ACTES ENERGY SYSTEMS</p>
           <h1 className="mt-3 text-2xl font-black leading-tight lg:text-4xl">
-            {clientName ? `أهلاً بك، ${clientName}` : "أهلاً بك في منصة أكتس"}
+            {clientName ? `مرحباً بك، ${clientName}` : "مرحباً بك في نظام أكتس"}
           </h1>
           <p className="mt-3 max-w-md text-sm leading-7 opacity-80 lg:text-base">
             صمّم منظومتك واحصل على عرض سعر رسمي ودراسة ومخطط معتمد.
