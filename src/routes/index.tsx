@@ -8,6 +8,7 @@ import { prepareSpeech, prepareWelcome, quoteSpeech, replaySpeech, respeakScreen
 import { startVoiceWarmup } from "@/lib/voice-warmup";
 import { preloadAppImages } from "@/lib/preload-images";
 import PvsystStudy from "@/components/pvsyst-study";
+import EconomicStudy from "@/components/economic-study";
 import SldDiagram from "@/components/sld-diagram";
 
 import { enterFullscreen, isFullscreen, toggleFullscreen } from "@/lib/fullscreen";
