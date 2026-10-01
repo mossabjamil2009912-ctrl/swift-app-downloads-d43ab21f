@@ -1545,7 +1545,17 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
 
         <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
 
-            {sldScreen ? (
+            {ecoScreen ? (
+              <EconomicStudy
+                study={ecoScreen}
+                actions={{
+                  onBuy: () => onPick("buy_invoice"),
+                  onBackToQuote: () => setShowEco(false),
+                  onStudy: studyFresh ? () => { setShowEco(false); setShowStudyOnly(true); } : undefined,
+                  onSld: () => { setShowEco(false); onPick("sld_yes"); },
+                }}
+              />
+            ) : sldScreen ? (
               <SldDiagram
                 params={sldParams}
                 number={view.sld?.number}
