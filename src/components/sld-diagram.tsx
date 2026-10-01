@@ -95,8 +95,9 @@ function PhaseMark({ x, y, phase3 }: { x: number; y: number; phase3: boolean }) 
 
 
 
-/** رمز لوح شمسي قياسي. */
-function PvSymbol({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+/** رمز لوح شمسي قياسي، أو لوح واقعي بخلايا نصف مقطوعة في وضع العرض الواقعي. */
+function PvSymbol({ x, y, w, h, real }: { x: number; y: number; w: number; h: number; real?: boolean | undefined }) {
+  if (real) return <PvRealSymbol x={x} y={y} w={w} h={h} />;
   return (
     <g>
       <rect x={x} y={y} width={w} height={h} fill={C.fill} stroke={C.ink} strokeWidth={1.4} />
