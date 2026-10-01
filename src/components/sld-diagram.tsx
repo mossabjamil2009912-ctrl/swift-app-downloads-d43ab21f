@@ -425,6 +425,7 @@ export function SldSvg({
             id="dc"
             pick={pick}
             active={active === "dc"}
+            art="board-dc" real={real}
           />
           {Array.from({ length: drawnStrings }).map((_, i) => (
             <FuseSymbol key={i} x={xDc + wDc - 20} y={pvTop + i * rowH + 19} />
@@ -487,6 +488,7 @@ export function SldSvg({
             id="inv"
             pick={pick}
             active={active === "inv"}
+            art="inverter" real={real}
           />
 
           <text x={xInv + wInv / 2} y={invY + invH + 12} textAnchor="middle" fontFamily={F} fontSize={8.2} fill={C.soft}>
@@ -529,6 +531,7 @@ export function SldSvg({
               id="bat"
               pick={pick}
               active={active === "bat"}
+              art={batArt} real={real}
             />
             <BatterySymbol x={bankX + bankW + 14} y={batY} />
             <text x={bankX} y={batY + 50} fontFamily={F} fontSize={8} fill={C.soft}>{bat.model}</text>
@@ -537,7 +540,7 @@ export function SldSvg({
             <Polarity x={bankX + bankW + 24} y={batY + 26} sign="−" />
             {m.batBox ? (
               <>
-                <Block x={boxX} y={batY - 28} w={108} h={62} title="BATTERY BOX" lines={[m.batBox.rating, "Icu 10 kA"]} accent={C.dc} id="bat" pick={pick} active={active === "bat"} />
+                <Block x={boxX} y={batY - 28} w={108} h={62} title="BATTERY BOX" lines={[m.batBox.rating, "Icu 10 kA"]} accent={C.dc} id="bat" pick={pick} active={active === "bat"} art="board-dc" real={real} />
                 <BreakerSymbol x={boxX + 78} y={batY + 6} />
                 <line x1={boxX + 108} y1={batY} x2={riser} y2={batY} stroke={C.dc} strokeWidth={2} />
               </>
@@ -582,6 +585,7 @@ export function SldSvg({
             id="ac"
             pick={pick}
             active={active === "ac"}
+            art="board-ac" real={real}
           />
 
           <BreakerSymbol x={xAc + wAc - 24} y={dcY} />
@@ -606,6 +610,7 @@ export function SldSvg({
             id="ats"
             pick={pick}
             active={active === "ats"}
+            art="ats" real={real}
           />
         </>
       )}
@@ -631,6 +636,7 @@ export function SldSvg({
                   id="grid"
                   pick={pick}
                   active={active === "grid"}
+                  art="grid" real={real}
                 />
                 <line x1={from} y1={dcY} x2={xOut - 26} y2={dcY} stroke={C.ac} strokeWidth={2} />
                 <line x1={xOut - 26} y1={dcY} x2={xOut - 26} y2={dcY - 50} stroke={C.ac} strokeWidth={2} />
@@ -667,6 +673,7 @@ export function SldSvg({
               id={backup ? "backup" : "loads"}
               pick={pick}
               active={active === (backup ? "backup" : "loads")}
+              art="loads" real={real}
             />
             {backup ? (
               <g opacity={opEps}>
