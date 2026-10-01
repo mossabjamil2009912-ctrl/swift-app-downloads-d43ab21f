@@ -241,6 +241,101 @@ export default function PvsystStudy({ study, actions }: Props) {
         </>
       )}
 
+      {/* تعديل اختياري لزاوية الميلان والاتجاه */}
+      {s.baseTilt !== null && hasMonths && (
+        <div className="mt-3 rounded-md border" style={{ borderColor: C.grid }}>
+          <div className="flex flex-wrap items-center gap-2 px-2.5 py-2">
+            <button
+              type="button"
+              onClick={() => setGeoOpen((v) => !v)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-bold text-foreground shadow-sm transition hover:bg-black/5"
+            >
+              <Compass className="size-3.5" />
+              تعديل زاوية الميلان والاتجاه (اختياري)
+            </button>
+            <span className="text-[10px] text-muted-foreground">
+              الحالي: {s.tilt}° / {s.azimuth}
+            </span>
+            {s.orientationCustom && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTilt(null);
+                  setAzimuth(0);
+                }}
+                className="inline-flex items-center gap-1 rounded-full border border-black/10 px-2.5 py-1 text-[10px] font-bold text-muted-foreground transition hover:bg-black/5"
+              >
+                <RotateCcw className="size-3" />
+                استعادة الزوايا الافتراضية
+              </button>
+            )}
+          </div>
+
+          {geoOpen && (
+            <div className="border-t px-2.5 py-3" style={{ borderColor: C.grid }}>
+              <label className="block text-[11px] font-bold">
+                زاوية الميلان عن الأفقي: <span className="tabular-nums">{s.tilt}°</span>
+                <span className="mr-2 font-normal text-muted-foreground">
+                  (الموصى به للموقع {s.baseTilt}°)
+                </span>
+              </label>
+              <input
+                type="range"
+                min={5}
+                max={45}
+                step={1}
+                value={s.tilt ?? s.baseTilt ?? 15}
+                onChange={(e) => setTilt(Number(e.target.value))}
+                className="mt-2 w-full accent-[#1c3f94]"
+              />
+              <div className="flex justify-between text-[9px] text-muted-foreground" dir="ltr">
+                <span>5°</span>
+                <span>25°</span>
+                <span>45°</span>
+              </div>
+
+              <p className="mt-3 text-[11px] font-bold">زاوية الاتجاه (Azimuth)</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {AZIMUTH_OPTIONS.map((opt) => {
+                  const on = (s.azimuthDeg ?? 0) === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAzimuth(opt.value)}
+                      className={`rounded-full border px-3 py-1 text-[11px] font-bold transition ${
+                        on ? "border-transparent text-white" : "border-black/10 text-foreground hover:bg-black/5"
+                      }`}
+                      style={on ? { background: C.blue } : undefined}
+                    >
+                      {opt.label}
+                      {opt.value === 0 ? " (الأفضل)" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {deltaPct !== null && (
+                <p
+                  className="mt-3 rounded-md px-2.5 py-1.5 text-[11px] font-bold"
+                  style={{
+                    background: deltaPct >= 0 ? "#e8f4ea" : "#fdecea",
+                    color: deltaPct >= 0 ? "#1d6f36" : C.red,
+                  }}
+                >
+                  أثر التعديل على الإنتاج السنوي: {deltaPct >= 0 ? "+" : ""}
+                  {nf(deltaPct, 1)}%
+                  {baseAnnual ? ` — مقارنة بـ ${nf(baseAnnual)} kWh/سنة عند الزاوية الافتراضية` : ""}
+                </p>
+              )}
+              <p className="mt-1.5 text-[9.5px] text-muted-foreground">
+                تُعاد كل أرقام الإشعاع والإنتاج ومعامل الأداء ومخطط الفواقد فور تغيير أي زاوية.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* جدول التوازن الشهري الكامل */}
       {hasMonths && totals && (
         <>
