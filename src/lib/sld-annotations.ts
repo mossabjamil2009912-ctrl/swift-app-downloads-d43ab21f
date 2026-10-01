@@ -106,9 +106,9 @@ export function cableCalcs(m: SldModel, lengths?: CableLengths | undefined): Cab
 export type InspectItem = { id: string; title: string; subtitle: string; rows: [string, string][] };
 
 /** بطاقات فحص المكوّنات الهندسية القابلة للنقر على المخطط. */
-export function inspectorItems(m: SldModel): Record<string, InspectItem> {
+export function inspectorItems(m: SldModel, lengths?: CableLengths | undefined): Record<string, InspectItem> {
   const out: Record<string, InspectItem> = {};
-  const calcs = cableCalcs(m);
+  const calcs = cableCalcs(m, lengths);
   const byTag = (t: string) => calcs.find((c) => c.tag === t);
   const phase3 = Boolean(m.inverter?.phase3 || m.acBox?.phase3);
 
