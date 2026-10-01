@@ -697,17 +697,60 @@ export function SldSvg({
         );
       })()}
 
-      {/* ── ناقل التأريض الرئيسي الموحد (PE) ─────────────────────────────── */}
+      {/* ── محاكاة تدفق الطاقة المتحرك على المسارات العاملة ───────────────── */}
+      {anim && flow !== "none" && (() => {
+        const riser = xInv + wInv / 2;
+        const backup = Boolean(bat && inv);
+        const loadY = backup ? dcY + 86 : m.grid ? dcY + 34 : dcY;
+        const pvOn = flow === "day" && Boolean(pv && inv);
+        const gridOn = Boolean(m.grid && ac && flow !== "outage");
+        const batOn = Boolean(bat && inv);
+        const charging = flow === "day";
+        return (
+          <g pointerEvents="none">
+            {pvOn && (
+              <>
+                <path d={`M ${xPv + 90} ${busY} L ${dc ? xDc : xInv} ${busY}`} className="sldFlow" stroke={C.dc} />
+                <path d={`M ${dcOutX} ${dcY} L ${xInv} ${dcY}`} className="sldFlow" stroke={C.dc} />
+              </>
+            )}
+            {batOn && (
+              <path
+                d={`M ${riser} ${batY} L ${riser} ${invY + invH}`}
+                className={charging ? "sldFlowR" : "sldFlow"}
+                stroke={C.dc}
+              />
+            )}
+            {gridOn && (
+              <path d={`M ${xInv + wInv} ${dcY} L ${xOut - 26} ${dcY}`} className="sldFlow" stroke={C.ac} />
+            )}
+            {backup && (
+              <path
+                d={`M ${xInv + wInv} ${dcY + 30} L ${xInv + wInv + 18} ${dcY + 30} L ${xInv + wInv + 18} ${loadY} L ${xOut} ${loadY}`}
+                className="sldFlow"
+                stroke={C.ac}
+              />
+            )}
+            {!backup && ac && flow !== "outage" && (
+              <path d={`M ${xInv + wInv} ${dcY} L ${xOut - 26} ${dcY} L ${xOut - 26} ${loadY} L ${xOut} ${loadY}`} className="sldFlow" stroke={C.ac} />
+            )}
+          </g>
+        );
+      })()}
+
+      {/* ── شبكة التأريض الشاملة ومانعات الصواعق (IEC 60364-7-712) ───────── */}
       {(() => {
-        const bonds = [
-          xPv + 60,
-          dc ? xDc + wDc / 2 : null,
-          bat ? xInv - 244 : null,
-          inv ? xInv + wInv / 2 : null,
-          ac ? xAc + wAc / 2 : null,
-          m.ats ? xAts + wAts / 2 : null,
-          xOut + 40,
-        ].filter((v): v is number => v !== null);
+        const bonds: { x: number; label: string }[] = [
+          { x: xPv + 60, label: "ARRAY FRAMES 6 mm²" },
+          ...(dc ? [{ x: xDc + wDc / 2, label: "DC BOARD + SPD" }] : []),
+          ...(bat ? [{ x: xInv - 244, label: "BATTERY RACK" }] : []),
+          ...(inv ? [{ x: xInv + wInv / 2, label: "INVERTER CHASSIS" }] : []),
+          ...(ac ? [{ x: xAc + wAc / 2, label: "AC BOARD + SPD" }] : []),
+          ...(m.ats ? [{ x: xAts + wAts / 2, label: "ATS ENCLOSURE" }] : []),
+          { x: xOut + 40, label: "LOADS PANEL PE" },
+        ];
+        const mebX = xInv + wInv / 2 - 86;
+        const mebW = 172;
         return (
           <g style={pick ? { cursor: "pointer" } : undefined} onClick={pick ? () => pick("earth") : undefined}>
             <line
@@ -728,18 +771,62 @@ export function SldSvg({
               strokeWidth={active === "earth" ? 3.4 : 2.4}
               strokeDasharray="7 9"
             />
-            {bonds.map((x) => (
-              <g key={x}>
-                <line x1={x} y1={earthY - 26} x2={x} y2={earthY} stroke={C.earth} strokeWidth={1.4} strokeDasharray="4 3" />
-                <Node x={x} y={earthY} color={C.earth} />
+            {bonds.map((bnd) => (
+              <g key={bnd.x}>
+                <line x1={bnd.x} y1={earthY - 26} x2={bnd.x} y2={earthY} stroke={C.earth} strokeWidth={1.4} strokeDasharray="4 3" />
+                <Node x={bnd.x} y={earthY} color={C.earth} />
+                <text x={bnd.x} y={earthY + 13} textAnchor="middle" fontFamily={F} fontSize={6.6} fill={C.earth}>
+                  {bnd.label}
+                </text>
               </g>
             ))}
-            <EarthSymbol x={xOut + wOut - 40} y={earthY + 8} />
-            <text x={xOut + wOut - 40} y={earthY + 34} textAnchor="middle" fontFamily={F} fontSize={8} fill={C.earth}>
-              {m.earth ? "EARTHING PIT < 5 Ω" : "EARTH ELECTRODE"}
+
+            {/* قضيب التأريض الرئيسي (Main Earth Bar) */}
+            <rect x={mebX} y={earthY - 10} width={mebW} height={20} fill={C.fill} stroke={C.earth} strokeWidth={1.6} />
+            <text x={mebX + mebW / 2} y={earthY + 4} textAnchor="middle" fontFamily={F} fontSize={7.6} fontWeight={700} fill={C.earth}>
+              MAIN EARTH BAR (MEB) — Cu 25×3 mm
             </text>
+
+            {/* مانعات الصواعق Type I+II على جانبي DC و AC */}
+            {dc && (
+              <g>
+                <SpdSymbol x={xDc + wDc / 2 - 34} y={earthY - 44} />
+                <line x1={xDc + wDc / 2 - 34} y1={earthY - 29} x2={xDc + wDc / 2 - 34} y2={earthY} stroke={C.earth} strokeWidth={1.4} />
+                <Node x={xDc + wDc / 2 - 34} y={earthY} color={C.earth} />
+                <text x={xDc + wDc / 2 - 34} y={earthY - 56} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  SPD TYPE I+II — DC
+                </text>
+              </g>
+            )}
+            {ac && (
+              <g>
+                <SpdSymbol x={xAc + wAc / 2 + 34} y={earthY - 44} />
+                <line x1={xAc + wAc / 2 + 34} y1={earthY - 29} x2={xAc + wAc / 2 + 34} y2={earthY} stroke={C.earth} strokeWidth={1.4} />
+                <Node x={xAc + wAc / 2 + 34} y={earthY} color={C.earth} />
+                <text x={xAc + wAc / 2 + 34} y={earthY - 56} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  SPD TYPE I+II — AC
+                </text>
+              </g>
+            )}
+
+            {/* موصل هابط لمانعة الصواعق الخارجية (LPS) من هيكل الألواح */}
+            {pv && (
+              <g>
+                <line x1={xPv + 18} y1={earthY - 40} x2={xPv + 18} y2={earthY} stroke={C.earth} strokeWidth={1.8} />
+                <Node x={xPv + 18} y={earthY} color={C.earth} />
+                <text x={xPv + 18} y={earthY - 46} textAnchor="middle" fontFamily={F} fontSize={6.8} fontWeight={700} fill={C.earth}>
+                  LPS DOWN CONDUCTOR 50 mm²
+                </text>
+              </g>
+            )}
+
+            <EarthSymbol x={xOut + wOut - 40} y={earthY + 26} />
+            <text x={xOut + wOut - 40} y={earthY + 52} textAnchor="middle" fontFamily={F} fontSize={8} fill={C.earth}>
+              {m.earth ? "EARTHING PIT < 5 Ω" : "EARTH ELECTRODE < 5 Ω"}
+            </text>
+            <line x1={xOut + wOut - 40} y1={earthY} x2={xOut + wOut - 40} y2={earthY + 18} stroke={C.earth} strokeWidth={2} />
             <text x={xPv} y={earthY - 13} fontFamily={F} fontSize={8.4} fontWeight={700} fill={C.earth}>
-              PE — MAIN EARTHING BUS 1×16 mm² (frames 1×6 mm²)
+              PE — MAIN EARTHING BUS 1×16 mm² (frames 1×6 mm²) — TN-S
             </text>
           </g>
         );
