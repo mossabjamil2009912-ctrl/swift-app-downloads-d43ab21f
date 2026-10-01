@@ -1199,7 +1199,7 @@ function CorporateWelcome({ onClient, onAdmin }: { onClient: () => void; onAdmin
     <main className="corporate-grid grid h-dvh w-full place-items-center bg-sidebar px-6 text-sidebar-foreground" dir="rtl">
       <div className="w-full max-w-md rounded-xl border border-sidebar-foreground/15 bg-card p-8 text-center text-foreground shadow-2xl">
         <div className="flex justify-center"><BrandMark /></div>
-        <p className="mt-3 text-xs text-muted-foreground">نظام مبيعات ACTES لأنظمة الطاقة</p>
+        <p className="mt-3 text-xs text-muted-foreground">نظام أكتس لأنظمة الطاقة</p>
         <button type="button" onClick={onClient} className="mt-6 h-12 w-full rounded-lg bg-brand text-base font-black text-brand-foreground transition hover:opacity-90">الدخول كعميل</button>
         <button type="button" onClick={onAdmin} className="mt-3 h-12 w-full rounded-lg border border-border text-base font-bold transition hover:bg-muted">دخول الإدارة</button>
       </div>
