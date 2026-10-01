@@ -1,11 +1,5 @@
 {
-  "version": 1,
-  "asset_id": "bd799dd0-d18f-4ee4-8a41-67d369d57372",
-  "project_id": "4da1087b-6edb-492e-86ed-2eca9469bb0e",
-  "url": "/__l5e/assets-v1/bd799dd0-d18f-4ee4-8a41-67d369d57372/pylontech-rv12200.mp4",
-  "r2_key": "a/v1/4da1087b-6edb-492e-86ed-2eca9469bb0e/bd799dd0-d18f-4ee4-8a41-67d369d57372/pylontech-rv12200.mp4",
-  "original_filename": "pylontech-rv12200.mp4",
-  "size": 8590340,
+  "url": "/videos/pylontech-rv12200.mp4",
   "content_type": "video/mp4",
-  "created_at": "2026-09-30T23:51:50Z"
+  "size": 8590340
 }

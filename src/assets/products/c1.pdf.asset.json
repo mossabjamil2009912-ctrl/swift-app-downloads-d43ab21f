@@ -1,11 +1,5 @@
 {
-  "version": 1,
-  "asset_id": "68093070-a260-41e4-a5b3-0f9971be3eff",
-  "project_id": "4da1087b-6edb-492e-86ed-2eca9469bb0e",
-  "url": "/__l5e/assets-v1/68093070-a260-41e4-a5b3-0f9971be3eff/catalog-1.pdf",
-  "r2_key": "a/v1/4da1087b-6edb-492e-86ed-2eca9469bb0e/68093070-a260-41e4-a5b3-0f9971be3eff/catalog-1.pdf",
-  "original_filename": "catalog-1.pdf",
-  "size": 2985181,
+  "url": "/catalogs/catalog-1.pdf",
   "content_type": "application/pdf",
-  "created_at": "2026-09-30T23:52:37Z"
+  "size": 2985181
 }
