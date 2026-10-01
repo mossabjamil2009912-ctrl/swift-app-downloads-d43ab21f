@@ -179,23 +179,32 @@ function MeterSymbol({ x, y }: { x: number; y: number }) {
 
 /** صندوق مكوّن هندسي بعنوان وأسطر مواصفات، قابل للنقر لإظهار بطاقة فحصه. */
 function Block({
-  x, y, w, h, title, lines, accent, id, pick, active,
+  x, y, w, h, title, lines, accent, id, pick, active, art, real,
 }: {
   x: number; y: number; w: number; h: number; title: string; lines: string[]; accent: string;
   id?: string | undefined; pick?: ((id: string) => void) | undefined; active?: boolean | undefined;
+  /** نوع المجسم الواقعي المقابل لهذا المكوّن. */
+  art?: EquipKind | undefined;
+  /** تشغيل العرض الواقعي بدل الصندوق القياسي. */
+  real?: boolean | undefined;
 }) {
   const clickable = Boolean(id && pick);
+  const showArt = Boolean(real && art);
   return (
     <g
       style={clickable ? { cursor: "pointer" } : undefined}
       onClick={clickable ? () => pick!(id!) : undefined}
     >
       <rect x={x} y={y} width={w} height={h} fill={C.fill} stroke={active ? accent : C.frame} strokeWidth={active ? 2.8 : 1.6} />
+      {showArt && <EquipArt kind={art!} x={x} y={y + 16} w={w} h={h - 16} accent={accent} />}
       <rect x={x} y={y} width={w} height={16} fill={C.band} stroke={C.frame} strokeWidth={1.2} />
       <rect x={x} y={y} width={3} height={h} fill={accent} />
       <text x={x + w / 2} y={y + 12} textAnchor="middle" fontFamily={F} fontSize={9.5} fontWeight={700} fill={C.ink}>
         {title}
       </text>
+      {showArt && lines.length > 0 && (
+        <rect x={x + 3} y={y + 19} width={w - 6} height={lines.length * 12 + 4} fill={C.fill} opacity={0.82} />
+      )}
       {lines.map((l, i) => (
         <text key={i} x={x + 6} y={y + 30 + i * 12} fontFamily={F} fontSize={8.6} fill={C.ink}>
           {l}
@@ -209,6 +218,7 @@ function Block({
     </g>
   );
 }
+
 
 
 
