@@ -24,7 +24,7 @@ function currentSvg(): string {
   return clone.outerHTML;
 }
 
-export function downloadSldSheet(m: SldModel, number?: string): void {
+export function downloadSldSheet(m: SldModel, number?: string, calcs?: CableCalc[] | undefined): void {
   const drawing = currentSvg();
   const ref = number || m.title.ref || "—";
   const t = m.title;
@@ -42,13 +42,27 @@ export function downloadSldSheet(m: SldModel, number?: string): void {
     </table>
   </div>`;
 
+  const calcOf = (tag: string) => calcs?.find((c) => c.tag === tag);
+  const anyCustom = Boolean(calcs?.some((c) => c.custom));
+
   const cables = m.cables.length
     ? `<table class="dt">
-        <thead><tr><th>TAG</th><th>ROUTE</th><th>CABLE / CONDUCTOR</th></tr></thead>
+        <thead><tr><th>TAG</th><th>ROUTE</th><th>CABLE / CONDUCTOR</th><th style="width:16mm">LENGTH</th><th style="width:16mm">V-DROP</th></tr></thead>
         <tbody>${m.cables
-          .map((c) => `<tr><td class="c b">${esc(c.tag)}</td><td>${esc(c.route)}</td><td>${esc(c.spec)}</td></tr>`)
+          .map((c) => {
+            const k = calcOf(c.tag);
+            const len = k ? `${k.length} m${k.custom ? " *" : ""}` : "—";
+            const dv = k && k.dropPct !== null ? `${k.dropPct}%` : "—";
+            const warn = k && k.dropPct !== null && k.dropPct > 3 ? ' style="color:#b4231f;font-weight:700"' : "";
+            return `<tr><td class="c b">${esc(c.tag)}</td><td>${esc(c.route)}</td><td>${esc(c.spec)}</td><td class="c">${esc(len)}</td><td class="c"${warn}>${esc(dv)}</td></tr>`;
+          })
           .join("")}</tbody>
-       </table>`
+       </table>
+       <p style="font-size:7pt;margin:1.5mm 0 0">${
+         anyCustom
+           ? "* Length measured on site and entered by the designer. Voltage drop limit 3% (IEC)."
+           : "Lengths are typical design values pending site survey. Voltage drop limit 3% (IEC)."
+       }</p>`
     : "";
 
   const bom = m.bom.length
