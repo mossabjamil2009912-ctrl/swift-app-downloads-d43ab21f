@@ -1026,6 +1026,26 @@ export default function SldDiagram({ params, number, actions }: Props) {
       </button>
       <button
         type="button"
+        onClick={() => downloadSldDxf(model, number, calcs)}
+        aria-label="تصدير المخطط كملف أوتوكاد DXF"
+        title="تصدير DXF لأوتوكاد"
+        className="grid size-9 place-items-center rounded-full border border-border bg-card text-skyline transition hover:border-brand hover:text-brand"
+      >
+        <FileDown className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setAnim((v) => !v)}
+        aria-label={anim ? "إيقاف محاكاة تدفق الطاقة" : "تشغيل محاكاة تدفق الطاقة"}
+        title={anim ? "إيقاف الحركة" : "تشغيل الحركة"}
+        className={`grid size-9 place-items-center rounded-full border transition ${
+          anim ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-skyline hover:border-brand hover:text-brand"
+        }`}
+      >
+        <Waves className="size-4" />
+      </button>
+      <button
+        type="button"
         onClick={() => { setFull((v) => !v); setPan({ x: 0, y: 0 }); }}
         aria-label={full ? "إنهاء ملء الشاشة" : "ملء الشاشة"}
         className="grid size-9 place-items-center rounded-full border border-border bg-card text-skyline transition hover:border-brand hover:text-brand"
