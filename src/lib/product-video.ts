@@ -371,6 +371,7 @@ const SPOKEN_MODELS: Array<{ match: RegExp; spoken: string | null }> = [
   { match: /^PowerCube-M1C/i, spoken: "سلسلة باور كيوب إم 1 سي" },
   { match: /^HeroEE MaxPower/i, spoken: null },
   { match: /^A300-HY/i, spoken: "أوبتيموس إيه 300 هايبرد" },
+  { match: /LEGEND\s*112C/i, spoken: "ليجند 112 سي" },
 ];
 
 /** الموديل بصيغة منطوقة سلسة، أو null إذا كان من الأفضل عدم نطقه. */
