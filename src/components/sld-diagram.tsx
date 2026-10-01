@@ -490,7 +490,7 @@ export function SldSvg({
 
 
       {/* ── الإنفرتر ─────────────────────────────────────────────────────── */}
-      {inv && (
+      {inv && !multiInv && (
         <>
           <Block
             x={xInv}
@@ -527,6 +527,100 @@ export function SldSvg({
 
         </>
       )}
+
+      {/* ── مجموعة إنفرترات: وحدة مستقلة لكل إنفرتر بمداخل MPPT خاصة ────────── */}
+      {inv && multiInv && (() => {
+        const cy = (u: number) => invY + u * (invUnitH + invGap) + invUnitH / 2;
+        const trunkX = dcOutX + 30;
+        const acBusX = xInv + wInv + 10;
+        const mpptY = (u: number, j: number, k: number) => {
+          const spread = Math.min(invUnitH - 26, Math.max(0, (k - 1) * 13));
+          return cy(u) - spread / 2 + (k > 1 ? (j * spread) / (k - 1) : 0);
+        };
+        const allY: number[] = [];
+        for (let u = 0; u < drawnInv; u++) {
+          const k = mpptByInv[u]?.length || 1;
+          for (let j = 0; j < k; j++) allY.push(mpptY(u, j, k));
+        }
+        const topY = Math.min(...allY, cy(0));
+        const botY = Math.max(...allY, cy(drawnInv - 1));
+        return (
+          <g>
+            {/* جذع التيار المستمر الموزّع على الإنفرترات */}
+            <line x1={dcOutX} y1={dcY} x2={trunkX} y2={dcY} stroke={C.dc} strokeWidth={2.4} />
+            <line x1={trunkX} y1={topY} x2={trunkX} y2={botY} stroke={C.dc} strokeWidth={2.4} />
+            <Node x={trunkX} y={dcY} color={C.dc} />
+            {/* ناقل تجميع التيار المتردد قبل لوحة الحماية */}
+            <line x1={acBusX} y1={cy(0)} x2={acBusX} y2={cy(drawnInv - 1)} stroke={C.ac} strokeWidth={2.4} />
+            <text x={acBusX + 6} y={topY - 14} fontFamily={F} fontSize={7.2} fontWeight={700} fill={C.ac}>
+              AC COMBINER BUS
+            </text>
+            {Array.from({ length: drawnInv }).map((_, u) => {
+              const groups = mpptByInv[u] || [];
+              const k = groups.length || 1;
+              const by = invY + u * (invUnitH + invGap);
+              return (
+                <g key={u}>
+                  <Block
+                    x={xInv}
+                    y={by}
+                    w={wInv}
+                    h={invUnitH}
+                    title={`INV-${String(u + 1).padStart(2, "0")} — ${inv.kw} kW ${inv.phase3 ? "3PH" : "1PH"}`}
+                    lines={[
+                      inv.mppt ? `MPPT inputs: ${inv.mppt}` : "",
+                      inv.mpptRange ? `MPPT: ${inv.mpptRange}` : "",
+                      inv.vbat ? `BAT port: ${inv.vbat} V DC` : "",
+                    ].filter(Boolean)}
+                    accent={C.ac}
+                    id="inv"
+                    pick={pick}
+                    active={active === "inv"}
+                    art="inverter" real={real}
+                  />
+                  {/* مداخل الـ MPPT الخاصة بهذا الإنفرتر */}
+                  {groups.map((grp, j) => {
+                    const y = mpptY(u, j, k);
+                    return (
+                      <g key={grp.index}>
+                        <line x1={trunkX} y1={y} x2={xInv} y2={y} stroke={C.dc} strokeWidth={1.8} />
+                        <Node x={trunkX} y={y} color={C.dc} />
+                        <Node x={xInv} y={y} color={C.dc} />
+                        <text x={xInv - 8} y={y - 3} textAnchor="end" fontFamily={F} fontSize={6.6} fontWeight={700} fill={C.dc}>
+                          {`MPPT ${grp.index} — ${grp.strings.length} STR (S${grp.strings.join(", S")})`}
+                        </text>
+                        <text x={xInv - 8} y={y + 7.5} textAnchor="end" fontFamily={F} fontSize={6} fill={C.soft}>
+                          {`${grp.imp ? `Imp ${grp.imp} A` : ""}${grp.imp && grp.vmp ? " / " : ""}${grp.vmp ? `Vmp ${grp.vmp} V` : ""}`}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {/* مخرج التيار المتردد إلى ناقل التجميع */}
+                  <line x1={xInv + wInv} y1={cy(u)} x2={acBusX} y2={cy(u)} stroke={C.ac} strokeWidth={2} />
+                  <Node x={acBusX} y={cy(u)} color={C.ac} />
+                </g>
+              );
+            })}
+            <text x={xInv + wInv / 2} y={invY + stackH + 14} textAnchor="middle" fontFamily={F} fontSize={8} fill={C.soft}>
+              {`${inv.model} — ${inv.qty} × ${inv.kw} kW = ${inv.totalKw} kW`}
+            </text>
+            {invCount > drawnInv && (
+              <text x={xInv + wInv / 2} y={invY + stackH + 26} textAnchor="middle" fontFamily={F} fontSize={7.6} fontStyle="italic" fill={C.soft}>
+                {`typical — total ${invCount} inverters in parallel (INV-01 … INV-${String(invCount).padStart(2, "0")})`}
+              </text>
+            )}
+            {pv?.strVoc && inv.mpptRange && (
+              <text x={xInv + wInv / 2} y={invY - 12} textAnchor="middle" fontFamily={F} fontSize={7.6} fill={C.soft}>
+                {`STRING CHECK: Voc ${Math.round(pv.strVoc)} V within ${inv.mpptRange}`}
+              </text>
+            )}
+            {bat && (
+              <text x={xInv + wInv + 16} y={invY + stackH + 26} fontFamily={F} fontSize={7.6} fill={C.ac}>EPS / BACKUP</text>
+            )}
+          </g>
+        );
+      })()}
+
 
       {/* ── بنك البطاريات (فقط إذا كانت ضمن الأصناف) ──────────────────────── */}
       {bat && inv && (() => {
