@@ -55,7 +55,7 @@ function breakingKa(kind: SldCable["kind"], phase3: boolean, amps: number | null
 }
 
 /** هبوط الجهد ونسبته لكل كابل في المنظومة. */
-export function cableCalcs(m: SldModel): CableCalc[] {
+export function cableCalcs(m: SldModel, lengths?: CableLengths | undefined): CableCalc[] {
   const phase3 = Boolean(m.inverter?.phase3 || m.acBox?.phase3);
   const acVolts = phase3 ? 400 : 230;
 
