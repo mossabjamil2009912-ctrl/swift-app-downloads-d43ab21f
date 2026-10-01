@@ -1,11 +1,5 @@
 {
-  "version": 1,
-  "asset_id": "5d78f96b-fec2-498a-bf2c-b3812f9beaaf",
-  "project_id": "4da1087b-6edb-492e-86ed-2eca9469bb0e",
-  "url": "/__l5e/assets-v1/5d78f96b-fec2-498a-bf2c-b3812f9beaaf/pylontech-optimus-a300-hy.mp4",
-  "r2_key": "a/v1/4da1087b-6edb-492e-86ed-2eca9469bb0e/5d78f96b-fec2-498a-bf2c-b3812f9beaaf/pylontech-optimus-a300-hy.mp4",
-  "original_filename": "pylontech-optimus-a300-hy.mp4",
-  "size": 6892528,
+  "url": "/videos/pylontech-optimus-a300-hy.mp4",
   "content_type": "video/mp4",
-  "created_at": "2026-09-30T23:51:36Z"
+  "size": 6892528
 }
