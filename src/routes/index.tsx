@@ -1507,7 +1507,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
   // مسار الدعم الفني: مؤشر مراحل خاص به بدل مراحل عرض السعر
   const isSupportPath = step.startsWith("sup_");
   // شاشة عرض السعر الرسمي: أربعة أزرار مباشرة بألوان مميزة لكل خدمة
-  const isQuoteActions = !sldScreen && Boolean(view.quote) && (step === "qnext_ask" || step === "res_quote_ask" || step === "com_quote_ask" || step === "agr_quote_ask" || step === "buy_ask" || (studyFresh && !showStudyOnly));
+  const isQuoteActions = !sldScreen && !ecoScreen && Boolean(view.quote) && (step === "qnext_ask" || step === "res_quote_ask" || step === "com_quote_ask" || step === "agr_quote_ask" || step === "buy_ask" || (studyFresh && !showStudyOnly));
   // شاشة المخطط الكهربائي لا تطلب أي إدخال
   const showEntry = step !== "done" && !view.quote && !view.sld && !isProjectSelection && (step in ENTRY_PROMPTS || (view.needsInput && visibleOptions.length === 0));
 
@@ -1528,7 +1528,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
             <span className="mt-2 block h-1 w-10 rounded-full bg-brand" />
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button type="button" onClick={() => { silenceNextScreen(); if (sldScreen) { setShowSldOnly(false); return; } if (studyScreen) { setShowStudyOnly(false); return; } onBack(); }} title="رجوع خطوة" aria-label="رجوع خطوة" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-bold text-navy shadow-sm transition hover:bg-muted hover:border-brand hover:text-brand lg:text-sm">
+            <button type="button" onClick={() => { silenceNextScreen(); if (ecoScreen) { setShowEco(false); return; } if (sldScreen) { setShowSldOnly(false); return; } if (studyScreen) { setShowStudyOnly(false); return; } onBack(); }} title="رجوع خطوة" aria-label="رجوع خطوة" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-bold text-navy shadow-sm transition hover:bg-muted hover:border-brand hover:text-brand lg:text-sm">
               <ArrowRight className="size-4" /> رجوع
             </button>
             {step === "done" && (
