@@ -1477,15 +1477,21 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
   const [showStudyOnly, setShowStudyOnly] = useState(false);
   const studyFresh = Boolean(view.study?.fresh);
   useEffect(() => { setShowStudyOnly(studyFresh); }, [studyFresh, view.study?.number]);
-  const studyScreen = studyFresh && showStudyOnly && view.study;
+  // شاشة دراسة الجدوى الاقتصادية المستقلة
+  const [showEco, setShowEco] = useState(false);
+  useEffect(() => { setShowEco(false); }, [view.study?.number]);
+  const ecoScreen = showEco && view.study ? view.study : null;
+  const studyScreen = !ecoScreen && studyFresh && showStudyOnly && view.study;
   // شاشة المخطط الكهربائي تُعرض وحدها كاملة عند طلبها
   const [showSldOnly, setShowSldOnly] = useState(true);
   const sldParams = view.sld?.params || null;
   useEffect(() => { setShowSldOnly(true); }, [view.sld?.number, Boolean(sldParams)]);
-  const sldScreen = Boolean(sldParams) && showSldOnly && !studyScreen;
+  const sldScreen = Boolean(sldParams) && showSldOnly && !studyScreen && !ecoScreen;
   const hasOutputs = Boolean(view.quote || view.study || view.sld || view.specs.length);
   // شاشة عرض السعر الرسمي: عنوان ثابت بدل نص المتابعة القادم من المحرك
-  const title = sldScreen
+  const title = ecoScreen
+    ? "دراسة الجدوى الاقتصادية والوفر البيئي"
+    : sldScreen
     ? "المخطط الكهربائي أحادي الخط (SLD)"
     : studyScreen
     ? "دراسة المحاكاة الشمسية PVsyst"
