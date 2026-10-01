@@ -867,7 +867,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "pylontech-powercube-m5a",
-    category: "batteries",
+    category: "storage",
     brand: "Pylontech",
     name: "نظام تخزين Pylontech PowerCube-M5A عالي الجهد",
     model: "PowerCube-M5A-64/zzzV-L15 / -E15 — وحدة HM5A180F",
@@ -896,7 +896,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "pylontech-powercube-m1c",
-    category: "batteries",
+    category: "storage",
     brand: "Pylontech",
     name: "نظام تخزين Pylontech PowerCube-M1C عالي الجهد",
     model: "PowerCube-M1C — وحدة H32148-C",
