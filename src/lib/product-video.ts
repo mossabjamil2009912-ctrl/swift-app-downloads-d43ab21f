@@ -298,10 +298,11 @@ export const PRODUCT_VIDEOS: Record<string, ProductVideo> = {
     src: cubeM5aVideo.url,
     poster: cubeM5aPoster,
     cues: [
-      { at: 0.5, until: 3.2, label: "سعة الوحدة", value: "15.68 kWh" },
-      { at: 3.2, until: 5.4, label: "جهد تشغيل النظام", value: "0~1500 Vdc" },
-      { at: 5.4, until: 7.4, label: "عدد الوحدات", value: "1~21" },
-      { at: 7.4, until: 10, label: "كفاءة الدورة الكاملة (1C)", value: "96%" },
+      { at: 0.3, until: 1.7, label: "سعة الوحدة", value: "15.68 kWh" },
+      { at: 1.7, until: 3.0, label: "جهد تشغيل النظام", value: "0~1500 Vdc" },
+      { at: 3.0, until: 4.2, label: "عدد الوحدات", value: "1~21 وحدة" },
+      { at: 4.2, until: 5.2, label: "كفاءة الدورة الكاملة (1C)", value: "96%" },
+      { at: 5.2, until: 6.0, label: "الأبعاد الحقيقية", value: "1050 × 925 × 1965 mm" },
     ],
   },
   "pylontech-powercube-m1c": {
