@@ -49,6 +49,8 @@ import optimusA300Video from "@/assets/showroom/pylontech-optimus-a300-hy.mp4.as
 import optimusA300Poster from "@/assets/showroom/pylontech-optimus-a300-hy.jpg";
 import legend112cVideo from "@/assets/showroom/hithium-legend-112c.mp4.asset.json";
 import legend112cPoster from "@/assets/showroom/hithium-legend-112c.jpg";
+import optimusL260Video from "@/assets/showroom/pylontech-optimus-l260-hy.mp4.asset.json";
+import optimusL260Poster from "@/assets/showroom/pylontech-optimus-l260-hy.jpg";
 
 /** بطاقة مواصفة تظهر على الفيديو من الثانية `at` حتى `until`. */
 export type VideoCue = { at: number; until: number; label: string; value: string };
@@ -270,6 +272,16 @@ export const PRODUCT_VIDEOS: Record<string, ProductVideo> = {
       { at: 5.0, until: 6.5, label: "الأبعاد الحقيقية", value: "900 × 1000 × 2280 mm — 1400 kg" },
     ],
   },
+  "pylontech-optimus-l260-hy": {
+    src: optimusL260Video.url,
+    poster: optimusL260Poster,
+    cues: [
+      { at: 0.4, until: 2.2, label: "السعة الاسمية", value: "261 kWh" },
+      { at: 2.2, until: 3.8, label: "الإنفرتر الهجين المدمج", value: "125 kW" },
+      { at: 3.8, until: 5.0, label: "نوع التبريد", value: "تبريد سائل" },
+      { at: 5.0, until: 6.5, label: "الأبعاد الحقيقية", value: "1400 × 2180 × 1300 mm — أقل من 3 طن" },
+    ],
+  },
   "pylontech-powercube-m5a": {
     src: cubeM5aVideo.url,
     poster: cubeM5aPoster,
@@ -372,6 +384,7 @@ const SPOKEN_MODELS: Array<{ match: RegExp; spoken: string | null }> = [
   { match: /^HeroEE MaxPower/i, spoken: null },
   { match: /^A300-HY/i, spoken: "أوبتيموس إيه 300 هايبرد" },
   { match: /LEGEND\s*112C/i, spoken: "ليجند 112 سي" },
+  { match: /^L260-HY/i, spoken: "أوبتيموس إل 260 هايبرد" },
 ];
 
 /** الموديل بصيغة منطوقة سلسة، أو null إذا كان من الأفضل عدم نطقه. */
