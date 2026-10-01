@@ -16,6 +16,8 @@
  * لا تُحسب أي قيمة إذا لم تتوفر مدخلاتها — تُترك فارغة ليخفيها العرض.
  */
 
+import { tiltAdjustmentFactors, azimuthLabel } from "./pvsyst-geometry";
+
 export const MONTH_NAMES_AR = [
   "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
   "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
@@ -177,6 +179,12 @@ export type PvsystStudyResult = {
     phase: string | null;
     tilt: number | null;
     azimuth: string | null;
+    /** زاوية الميلان الافتراضية الموصى بها للموقع */
+    baseTilt: number | null;
+    /** زاوية الاتجاه بالدرجات: 0 = جنوب، سالب = شرق، موجب = غرب */
+    azimuthDeg: number | null;
+    /** هل عُدّلت زوايا التركيب يدوياً عن القيم الافتراضية */
+    orientationCustom: boolean;
     /** نسبة قدرة الألواح إلى قدرة الإنفرترات Pnom ratio */
     pnomRatio: number | null;
     strings: number | null;
@@ -222,10 +230,14 @@ const MODE_LABEL: Record<string, string> = {
   hyb: "هجين (Hybrid)",
 };
 
+/** خيارات اختيارية لتعديل هندسة التركيب (زاوية الميلان والاتجاه). */
+export type OrientationOverride = { tilt?: number | null; azimuth?: number | null };
+
 /** يبني نتائج الدراسة من معاملات الدراسة (study_params) القادمة من البوت. */
 export function buildPvsystStudy(
   sp: Record<string, unknown> | null,
   fallback: { city?: string; customer?: string; reference?: string; monthlyConsumption?: unknown },
+  orientation?: OrientationOverride,
 ): PvsystStudyResult | null {
   if (!sp) return null;
   const sys = (sp['system'] || {}) as Record<string, unknown>;
@@ -256,11 +268,33 @@ export function buildPvsystStudy(
         : 0;
   const systemFactor = (1 + LOSS_FACTORS.inverterSystem) * (1 + storageLoss);
 
+  // زاويتا الميلان والاتجاه المستخدمتان فعلياً (افتراضي الموقع ما لم يعدّلهما المستخدم)
+  const baseTilt = site ? site.tiltDeg : null;
+  const usedTilt =
+    site && typeof orientation?.tilt === "number" && Number.isFinite(orientation.tilt)
+      ? Math.min(45, Math.max(5, Math.round(orientation.tilt)))
+      : baseTilt;
+  const usedAzimuth =
+    typeof orientation?.azimuth === "number" && Number.isFinite(orientation.azimuth)
+      ? Math.min(90, Math.max(-90, Math.round(orientation.azimuth)))
+      : 0;
+  const orientationChanged = Boolean(site && (usedTilt !== baseTilt || usedAzimuth !== 0));
+
   if (site && kwp) {
     const climate = CLIMATES[site.climate]!;
+    // معامل إعادة حساب الإشعاع عند تغيير زاوية الميلان أو الاتجاه
+    const adj = orientationChanged
+      ? tiltAdjustmentFactors(
+          site.lat,
+          baseTilt!,
+          usedTilt!,
+          usedAzimuth,
+          climate.ghi && climate.dhi ? climate.ghi.map((g, i) => (g > 0 ? climate.dhi![i]! / g : null)) : undefined,
+        )
+      : null;
     for (let m = 0; m < 12; m += 1) {
       const days = DAYS_IN_MONTH[m]!;
-      const irradiation = climate.globInc[m]!;
+      const irradiation = climate.globInc[m]! * (adj ? adj[m]! : 1);
       const daily = irradiation / days;
       const globEff = irradiation * GLOB_EFF_FACTOR;
       // حرارة الخلية الفعّالة مرجّحة بشدة الإشعاع، بنفس منهجية معامل Uc في التقرير
@@ -330,8 +364,11 @@ export function buildPvsystStudy(
       batteryKwh: num(sys['battery_kwh']),
       sysMode: MODE_LABEL[sysModeKey] || null,
       phase: sys['phase3'] === true ? "ثلاثي الطور (3 Phase)" : sys['phase3'] === false ? "أحادي الطور (1 Phase)" : null,
-      tilt: site ? site.tiltDeg : null,
-      azimuth: site ? "الجنوب (0°)" : null,
+      tilt: usedTilt,
+      azimuth: site ? azimuthLabel(usedAzimuth) : null,
+      baseTilt,
+      azimuthDeg: site ? usedAzimuth : null,
+      orientationCustom: orientationChanged,
       pnomRatio: kwp && invTotalKw ? Math.round((kwp / invTotalKw) * 100) / 100 : null,
       strings: num(sys['strings']),
       perString: num(sys['per_string']),
