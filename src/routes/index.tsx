@@ -1661,7 +1661,7 @@ function QuoteActions({ onPick, hideEngineering = false, onEco }: { onPick: (val
         <button
           key={action.id}
           type="button"
-          onClick={() => onPick(action.id)}
+          onClick={() => { if (action.id === "aq_eco" && onEco) { onEco(); return; } onPick(action.id); }}
           className={`flex items-center gap-3 rounded-xl px-4 py-3 text-right shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg ${action.className}`}
         >
           <span className={`grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4 ${action.chip}`}>{action.icon}</span>
