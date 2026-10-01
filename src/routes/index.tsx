@@ -1703,7 +1703,7 @@ function QuoteWorkspace({ view, session, step, draft, setDraft, onPick, onBack, 
                   ? (() => { const info = shiftEntryInfo(session); return <ShiftEntry key={`shift-${info.offset}-${info.count}`} count={info.count} offset={info.offset} onSubmit={onPick} />; })()
                   : step === "pv_loads"
                     ? <HourlyLoadEntry onSubmit={onPick} />
-                    : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={ENTRY_PRESETS[step]} onQuick={onPick} />)}
+                    : <DataEntry value={draft} onChange={setDraft} prompt={entryPrompt(step, session)} onSubmit={submit} presets={entryPresets(step, session)} onQuick={onPick} />)}
                 {visibleOptions.length > 0 && <OptionGrid options={visibleOptions} selected={selected} projectCards={isProjectSelection} energyCards={isEnergyMenu} itemCards={isItemCards} onSelect={(value) => { onPick(value); }} />}
               </div>
             )}
@@ -2072,6 +2072,42 @@ function entryPrompt(step: string, session: BotSession = {}): EntryPrompt {
     return { label: "فاتورة الكهرباء الشهرية", hint: "أدخل متوسط الفاتورة الشهرية بالريال اليمني", placeholder: "مثال: 50000", cta: "متابعة", numeric: true };
   }
   return ENTRY_PROMPTS[step] ?? { label: "البيانات المطلوبة", hint: "اكتب البيانات المطلوبة في الخانة ثم تابع", placeholder: "اكتب هنا", cta: "متابعة" };
+}
+
+// قيم سريعة للقطاع التجاري تناسب الأنظمة المتوسطة والكبيرة، وتتبدّل بحسب طريقة الحساب
+const COM_VALUE_PRESETS: Record<string, { label: string; value: string }[]> = {
+  // الاستهلاك الشهري بالكيلووات ساعة
+  "2": [
+    { label: "1500 كيلووات", value: "1500" },
+    { label: "3000 كيلووات", value: "3000" },
+    { label: "6000 كيلووات", value: "6000" },
+    { label: "12 ألف كيلووات", value: "12000" },
+    { label: "25 ألف كيلووات", value: "25000" },
+  ],
+  // استهلاك الديزل الشهري باللتر
+  "3": [
+    { label: "500 لتر", value: "500" },
+    { label: "1000 لتر", value: "1000" },
+    { label: "2000 لتر", value: "2000" },
+    { label: "4000 لتر", value: "4000" },
+    { label: "8000 لتر", value: "8000" },
+  ],
+  // فاتورة الكهرباء الشهرية بالريال اليمني
+  "1": [
+    { label: "150 ألف", value: "150000" },
+    { label: "300 ألف", value: "300000" },
+    { label: "600 ألف", value: "600000" },
+    { label: "مليون", value: "1000000" },
+    { label: "2 مليون", value: "2000000" },
+  ],
+};
+
+function entryPresets(step: string, session: BotSession = {}): { label: string; value: string }[] | undefined {
+  if (step === "com_value") {
+    const method = String(session["activity_type"] || "").replace("com_", "");
+    return COM_VALUE_PRESETS[method] ?? COM_VALUE_PRESETS["1"];
+  }
+  return ENTRY_PRESETS[step];
 }
 
 function DataEntry({ value, onChange, onSubmit, prompt, presets, onQuick }: { value: string; onChange: (value: string) => void; onSubmit: () => void; prompt: EntryPrompt; presets?: { label: string; value: string }[] | undefined; onQuick?: ((value: string) => void) | undefined }) {
